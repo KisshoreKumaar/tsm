@@ -1,0 +1,4 @@
+Answer the analyst's question about this incident using only the evidence.
+JSON schema: {"s":"answer summary","c":[{"t":"claim","l":"FACT|INFERENCE|HYPOTHESIS|UNKNOWN","e":["E1"]}],"q":["follow-up question"],"a":[{"t":"investigation step","p":null}],"k":"low|medium|high"}
+Limits: summary at most {summary_words} words; at most {max_claims} claims of at most {claim_words} words each; at most {max_questions} questions; at most {max_actions} steps. "p" may be null or one of: isolate_endpoint, restore_connectivity, collect_evidence. "k" is your confidence (a heuristic).
+If the question is outside this incident's evidence, set "s" to explain what is unknown and use UNKNOWN claims.

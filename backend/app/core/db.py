@@ -82,7 +82,11 @@ class Database:
 
     @contextmanager
     def read(self) -> Iterator[Session]:
-        """A consistent read snapshot. Writes are rejected by `query_only`."""
+        """A consistent read snapshot; writes are rejected by `query_only`. Inside a write transaction on the same
+        thread, reads use that transaction's connection so composed operations see their own uncommitted changes."""
+        if getattr(self._local, "writing", False):
+            yield Session(self._local.session.conn, writable=False)
+            return
         conn = self._connect(read_only=True)
         try:
             conn.execute("BEGIN")
@@ -94,12 +98,16 @@ class Database:
 
     @contextmanager
     def write(self) -> Iterator[Session]:
+        """Serialised write transaction. A nested `write()` on the same thread joins the outer transaction, so
+        composed domain operations (e.g. applying an agent proposal) commit or roll back together."""
         if getattr(self._local, "writing", False):
-            raise RuntimeError("Nested write transactions are not allowed; pass the open Session instead")
+            yield self._local.session
+            return
         with self._write_lock:
             self._local.writing = True
             conn = self._connect()
             session = Session(conn, writable=True)
+            self._local.session = session
             try:
                 conn.execute("BEGIN IMMEDIATE")
                 # Foreign keys are checked at COMMIT, so multi-step writes (e.g. merges) need no statement ordering.

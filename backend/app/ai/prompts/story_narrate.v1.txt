@@ -1,0 +1,5 @@
+Rewrite the draft story sentences below in clear, plain language for a security team. Keep every fact, number, time and name exactly as given; do not add facts. Keep each sentence's label and cite only aliases from its "e" list.
+JSON schema: {"s":[{"id":"sentence id","t":"rewritten sentence","l":"FACT|INFERENCE|HYPOTHESIS|UNKNOWN","e":["E1"]}]}
+Return one item per draft sentence, same ids, each under {sentence_words} words.
+Draft sentences:
+{draft}

@@ -51,7 +51,11 @@ scripts/                 manage.py (init-env, token, verify-audit, checkpoint, b
 - **Validation:** Pydantic v2 with `extra="forbid"`, `StrictInt`/`StrictBool` where coercion matters, explicit
   length limits. Error responses never echo input values or stack traces.
 - **Database:** `with ctx.db.write() as session:` for changes (BEGIN IMMEDIATE, serialised writers). Pass the
-  session down; never nest writes. SQL is always parameterised; dynamic fragments come only from fixed allowlists.
+  session down; a nested `write()` joins the outer transaction (D-023), so avoid long work inside a write. SQL is
+  always parameterised; dynamic fragments come only from fixed allowlists.
+- **AI tasks:** run through `ctx.service("ai").run(TaskSpec, build_messages, ...)` from a job on lane `ai`; always
+  provide a deterministic fallback. Agent tools are registered via `FeatureSpec.agent_tools` (read tools, or
+  `propose_*` tools that only draft `agent_proposals`).
 - **Audit:** every state change calls `ctx.audit.append(session, action, actor, body, subject=(type, id))` with the
   same session. Action names are declared in the feature's `FeatureSpec.audit_actions`. Bodies must not contain
   secrets (rejected by key name).

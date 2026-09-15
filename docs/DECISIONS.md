@@ -142,3 +142,35 @@ record IDs instead of events. The citation validator enforces event citations on
 Deterministic stories are rebuilt on every request (always current); "regenerate" saves a version, and the stale flag
 compares the latest saved version's incident revision with the current one. AI polish (Phase 3) replaces the
 displayed story only when a validated version exists for the current revision.
+
+## D-023 — Nested database writes join the outer transaction
+`Database.write()` is reentrant per thread: a nested `write()` yields the same session, and `read()` inside a write
+reuses the write connection so it sees uncommitted changes. Only the outermost block commits or rolls back, and
+after-commit callbacks run once, after that commit. This lets X2 apply a proposal by calling the ordinary domain
+service (which opens its own write) while the proposal status and both audit records land in one transaction.
+
+## D-024 — AI runtime for a slow, small model
+- Provider order: test override → active Settings provider → other enabled providers by priority → environment
+  provider → deterministic fallback. Admins can force deterministic mode (`ai_deterministic_only`).
+- Each task has a Pydantic-free parser that raises `OutputInvalid`; one repair retry, then the task's deterministic
+  fallback with `ai_status` recording why. Every call (including cache hits and failures) is a row in `ai_calls` and
+  an `ai.call` audit record with provider, model, prompt version and hash, token counts, latency and outcome.
+- Cache key: task, subject revision, prompt version, provider, model and prompt hash.
+- Evidence reaches the model as aliases E1…En inside `<data>` with compact arrays, token-budgeted per provider; the
+  redactor replaces users, emails and IPs with USER_n/EMAIL_n/IP_n and restores them in validated output only.
+- Claim validation: unknown aliases are dropped, a FACT without a surviving citation becomes INFERENCE, claims echoing
+  instruction-like evidence text are removed, and suggested actions that approve, execute, disable or delete are dropped.
+- Story polish (F2) runs as a debounced `story.polish` job on the `ai` lane; on small-context providers stories are
+  polished two sentences per call. A rewrite must keep sentence ids, labels, citations and every number; otherwise
+  the deterministic story stays.
+- Deep mode and the agent use a provider-agnostic JSON tool protocol (`{"tool","args"}` / `{"final"}`) with a step cap
+  of 3 on providers with ≤4096 context tokens and 6 otherwise; tool results are truncated to 1200 characters.
+
+## D-025 — Agent proposals (X2)
+- The agent is a tool loop with read tools plus `propose_*` tools; a run stores at most three proposals, each bound to
+  the target's revision, with rationale, cited event IDs and an `injection_context` flag.
+- The proposable-action allowlist and the human-only list are disjoint by assertion and by test. Applying checks the
+  applying human's permission for the target action (not `ai.use`), re-checks the revision (stale → `STALE`, 409), and
+  requires `acknowledge_injection` for injection-context proposals.
+- The agent's actor string is `ai:agent (for <human>)`; the applied domain change is attributed to the human who
+  applied it, and the `agent.proposal_applied` audit record links both.

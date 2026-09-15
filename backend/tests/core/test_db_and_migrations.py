@@ -92,10 +92,25 @@ def test_read_sessions_reject_writes(tmp_path: Path) -> None:
         session.execute("INSERT INTO metadata (key, value) VALUES ('a', 'b')")
 
 
-def test_nested_write_is_refused(tmp_path: Path) -> None:
+def test_nested_writes_join_the_outer_transaction(tmp_path: Path) -> None:
     db = Database(tmp_path / "a.db")
-    with db.write(), pytest.raises(RuntimeError, match="Nested"), db.write():
-        pass
+    apply_migrations(db)
+    calls: list[str] = []
+    with pytest.raises(ValueError), db.write() as outer:
+        with db.write() as inner:
+            assert inner is outer
+            inner.execute("INSERT INTO metadata (key, value) VALUES ('joined', '1')")
+            inner.after_commit(lambda: calls.append("inner"))
+        with db.read() as reader:  # reads inside a write see its uncommitted changes
+            assert reader.scalar("SELECT value FROM metadata WHERE key = 'joined'") == "1"
+        raise ValueError("outer failure rolls back the nested work too")
+    assert calls == []
+    with db.read() as session:
+        assert session.scalar("SELECT count(*) FROM metadata WHERE key = 'joined'") == 0
+    with db.write() as outer, db.write() as inner:
+        inner.execute("INSERT INTO metadata (key, value) VALUES ('joined', '2')")
+        inner.after_commit(lambda: calls.append("committed"))
+    assert calls == ["committed"]
 
 
 def test_after_commit_runs_only_after_successful_commit(tmp_path: Path) -> None:

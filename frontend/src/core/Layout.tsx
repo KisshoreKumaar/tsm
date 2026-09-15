@@ -1,13 +1,19 @@
+import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { buildNav } from "../featureManifest";
+import { AiStatusChip } from "../features/x1/AiStatusChip";
+import { AgentDrawer } from "../features/x2/AgentDrawer";
 import { useAuth } from "./auth";
 
 export function Layout() {
-  const { principal, lock } = useAuth();
+  const { principal, lock, can } = useAuth();
+  const [agentOpen, setAgentOpen] = useState(false);
   if (!principal) {
     return null;
   }
   const sections = buildNav(principal.features);
+  const enabled = new Set(principal.features.map((feature) => feature.id));
+  const agentAvailable = enabled.has("x2") && can("ai.use");
   return (
     <div className="shell">
       <aside className="sidebar">
@@ -29,8 +35,13 @@ export function Layout() {
       </aside>
       <div className="main">
         <header className="topbar">
-          <div className="topbar-status" />
+          <div className="topbar-status">{enabled.has("x1") && can("read") && <AiStatusChip />}</div>
           <div className="identity">
+            {agentAvailable && (
+              <button type="button" className={agentOpen ? "" : "ghost"} aria-pressed={agentOpen} onClick={() => setAgentOpen((open) => !open)}>
+                Agent
+              </button>
+            )}
             <span className="badge">{principal.role}</span>
             <span>{principal.name}</span>
             <button type="button" className="ghost" onClick={lock}>
@@ -42,6 +53,7 @@ export function Layout() {
           <Outlet />
         </main>
       </div>
+      {agentAvailable && agentOpen && <AgentDrawer onClose={() => setAgentOpen(false)} />}
     </div>
   );
 }

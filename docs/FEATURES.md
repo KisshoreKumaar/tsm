@@ -8,10 +8,10 @@ A feature is `done` only after its acceptance tests have been run and passed.
 | PLATFORM | Scaffold: config, migrations, feature registry, audit chain, jobs, SSE, FakeProvider, CI, UI shell | 0 | done | `core` (always on) |
 | CORE | Ingestion, detection, risk scoring, incidents, simulated response, RBAC, audit, demo scenarios, UI shell | 1 | done | `core` (always on) |
 | F1 | Alert correlation: campaigns, entity index, explained links, graph | 2 | done | `f1` |
-| F2 | Alert story: deterministic (phase 2, done), AI polish (phase 3) | 2, 3 | in-progress | `f2` |
-| X1 | LLM provider settings with a UI API-key field | 3 | planned | `x1` |
-| F3 | AI analyst (grounded Q&A, quick and deep modes) | 3 | planned | `f3` |
-| X2 | Agent console: reads every module, proposes changes a human applies | 3 (core), 4–6 (tools) | planned | `x2` |
+| F2 | Alert story: deterministic (phase 2), validated AI polish (phase 3) | 2, 3 | done | `f2` |
+| X1 | LLM provider settings with a UI API-key field | 3 | done | `x1` |
+| F3 | AI analyst (grounded Q&A, quick and deep modes) | 3 | done | `f3` |
+| X2 | Agent console: reads every module, proposes changes a human applies | 3 (core), 4–6 (tools) | in-progress (core done; tools for F4/A3/A5/I1 arrive with them) | `x2` |
 | F4 | Attack prediction, next-step prediction, watchlist | 4 | planned | `f4` |
 | A3 | AI detection engineer: DSL, backtest, lifecycle | 5 | planned | `a3` |
 | A5 | Learning from false positives: analytics, tuning suggestions, suppressions | 5 | planned | `a5` |
@@ -123,6 +123,11 @@ cleanly; injection corpus passes; role without `ai.use` gets 403; every AI call 
 
 **Acceptance:** every enabled feature registers ≥1 read tool; human-only actions cannot be proposed; stale proposals
 fail to apply; injection corpus cannot yield approve/execute proposals; step cap holds; `ai.use` enforced.
+
+**Phase 3 status:** proposable actions are `incident.update`, `incident.note`, `response.recommend` and
+`demo.replay`; read tools cover CORE, F1, F2 and F3. `rule.draft`/`rule.backtest`, `tuning.suggest` and
+`report.cert_in.draft` proposals plus their read tools are registered by A3, A5 and I1 in Phases 5–6 (F4 tools in
+Phase 4 replace the `get_predictions` stub). Manual live check: `scripts/llm_smoke.py`.
 
 ## F4 — Attack prediction and watchlist (Phase 4)
 
