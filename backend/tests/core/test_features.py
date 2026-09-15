@@ -65,4 +65,4 @@ def test_manifest_hides_nav_items_without_permission(tmp_path: Path) -> None:
         ingest_nav = [n for f in client.get("/api/me", headers=auth("ingest")).json()["features"] for n in f["nav"]]
         viewer_nav = [n for f in client.get("/api/me", headers=auth("viewer")).json()["features"] for n in f["nav"]]
     assert ingest_nav == []
-    assert {n["path"] for n in viewer_nav} == {"/overview", "/example"}
+    assert {"/overview", "/incidents", "/example"} <= {n["path"] for n in viewer_nav}

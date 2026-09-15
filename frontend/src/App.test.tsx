@@ -15,24 +15,47 @@ const principal = {
     {
       id: "core",
       name: "Core platform",
-      description: "Identity, audit chain, jobs and live updates",
-      nav: [{ path: "/overview", label: "Overview", section: "Operations", permission: "read", order: 10 }],
+      description: "Ingestion, detection, incidents, simulated response and audit",
+      nav: [
+        { path: "/overview", label: "Overview", section: "Operations", permission: "read", order: 10 },
+        { path: "/incidents", label: "Incidents", section: "Operations", permission: "read", order: 20 },
+      ],
     },
   ],
 };
 
+const overview = {
+  metrics: { events_24h: 19, events_total: 19, highest_open_risk: 77 },
+  incidents_by_status: { OPEN: 1 },
+  open_incidents_by_severity: { HIGH: 1 },
+  responses_by_status: {},
+  top_incidents: [],
+  generated_at: "2026-01-15T09:00:00+00:00",
+};
+
+function json(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+}
+
 function fakeFetch(): typeof fetch {
-  return vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+  return vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
     const auth = (init?.headers as Record<string, string> | undefined)?.Authorization;
     if (auth !== `Bearer ${TOKEN}`) {
-      return new Response(JSON.stringify({ error: { code: "unauthorized", message: "bad token" } }), { status: 401 });
+      return json({ error: { code: "unauthorized", message: "bad token" } }, 401);
     }
-    return new Response(JSON.stringify(principal), { status: 200, headers: { "Content-Type": "application/json" } });
+    if (url.startsWith("/api/me")) {
+      return json(principal);
+    }
+    if (url.startsWith("/api/overview")) {
+      return json(overview);
+    }
+    return new Response(null, { status: 204 });
   }) as unknown as typeof fetch;
 }
 
 describe("App shell", () => {
-  it("logs in with a token held in memory and locks again", async () => {
+  it("logs in with a token held in memory, renders manifest navigation and locks again", async () => {
     const user = userEvent.setup();
     render(<App fetchImpl={fakeFetch()} />);
 
@@ -40,7 +63,8 @@ describe("App shell", () => {
     await user.click(screen.getByRole("button", { name: "Connect" }));
 
     expect(await screen.findByRole("heading", { name: "Overview" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Overview" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Incidents" })).toBeInTheDocument();
+    expect(await screen.findByText("Highest open risk")).toBeInTheDocument();
     expect(window.localStorage.length).toBe(0);
     expect(window.sessionStorage.length).toBe(0);
     expect(document.cookie).toBe("");

@@ -1,6 +1,13 @@
 import type { ComponentType } from "react";
 import type { FeatureManifestEntry, FeatureNav } from "./core/types";
+import { AuditPage } from "./features/core/AuditPage";
+import { DemoPage } from "./features/core/DemoPage";
+import { EventsPage } from "./features/core/EventsPage";
+import { IncidentPage } from "./features/core/IncidentPage";
+import { IncidentsPage } from "./features/core/IncidentsPage";
 import { OverviewPage } from "./features/core/OverviewPage";
+import { ResponsesPage } from "./features/core/ResponsesPage";
+import { RulesPage } from "./features/core/RulesPage";
 
 export interface FrontendRoute {
   path: string;
@@ -16,7 +23,21 @@ export interface FrontendFeature {
  * Frontend half of each feature. The server's manifest (GET /api/me) decides which features are enabled,
  * so a disabled feature has neither routes nor navigation entries here.
  */
-export const FRONTEND_FEATURES: FrontendFeature[] = [{ id: "core", routes: [{ path: "/overview", Component: OverviewPage }] }];
+export const FRONTEND_FEATURES: FrontendFeature[] = [
+  {
+    id: "core",
+    routes: [
+      { path: "/overview", Component: OverviewPage },
+      { path: "/incidents", Component: IncidentsPage },
+      { path: "/incidents/:id", Component: IncidentPage },
+      { path: "/events", Component: EventsPage },
+      { path: "/responses", Component: ResponsesPage },
+      { path: "/rules", Component: RulesPage },
+      { path: "/demo", Component: DemoPage },
+      { path: "/audit", Component: AuditPage },
+    ],
+  },
+];
 
 export function enabledRoutes(
   manifest: FeatureManifestEntry[],

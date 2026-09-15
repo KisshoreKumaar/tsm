@@ -102,6 +102,8 @@ class Database:
             session = Session(conn, writable=True)
             try:
                 conn.execute("BEGIN IMMEDIATE")
+                # Foreign keys are checked at COMMIT, so multi-step writes (e.g. merges) need no statement ordering.
+                conn.execute("PRAGMA defer_foreign_keys = ON")
                 yield session
                 conn.execute("COMMIT")
             except BaseException:

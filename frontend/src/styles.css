@@ -207,3 +207,402 @@ textarea {
 .feature-list {
   padding-left: 1.1rem;
 }
+
+/* Generic building blocks */
+.small {
+  font-size: 0.85rem;
+}
+
+.mono {
+  font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+  word-break: break-word;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.warn {
+  color: var(--warn);
+}
+
+.badge.warn {
+  border-color: var(--warn);
+  color: var(--warn);
+  margin-left: 0.3rem;
+}
+
+.full {
+  width: 100%;
+}
+
+.spaced {
+  margin-right: 0.4rem;
+}
+
+button.link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  padding: 0 0.3rem;
+  font-weight: 500;
+  text-decoration: underline;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  min-width: 0;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.card-header h2 {
+  margin: 0;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 1rem;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.tile {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.9rem;
+}
+
+.tile-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.tile-label {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.45rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.table th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.table.compact td {
+  padding: 0.3rem 0.4rem;
+}
+
+.table tr.highlight td {
+  background: rgba(63, 182, 168, 0.12);
+}
+
+.table td.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.filters,
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0.75rem 0;
+}
+
+.form {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.inline-form input {
+  flex: 1;
+  min-width: 220px;
+}
+
+.field {
+  display: grid;
+  gap: 0.25rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+fieldset.field {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.5rem;
+}
+
+.checks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.2rem;
+}
+
+.check {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+  color: var(--text);
+}
+
+.pagination {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin: 0.75rem 0;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--border);
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+
+.tab {
+  background: transparent;
+  color: var(--muted);
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  font-weight: 500;
+}
+
+.tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.kv {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.5rem 1rem;
+  margin: 0.75rem 0;
+}
+
+.kv dt {
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.kv dd {
+  margin: 0;
+}
+
+.header-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.error-banner {
+  background: rgba(229, 83, 75, 0.12);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--radius);
+  margin: 0.75rem 0;
+}
+
+.empty {
+  color: var(--muted);
+  padding: 2rem;
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+
+.json {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.6rem;
+  overflow: auto;
+  max-height: 360px;
+  font-size: 0.8rem;
+}
+
+.plain {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.claims,
+.notes,
+.stages {
+  display: grid;
+  gap: 0.6rem;
+  padding-left: 1.1rem;
+}
+
+.claims {
+  list-style: none;
+  padding-left: 0;
+}
+
+.technique {
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
+.note-text {
+  white-space: pre-wrap;
+}
+
+blockquote.quoted {
+  margin: 0.3rem 0 0;
+  padding: 0.3rem 0.6rem;
+  border-left: 3px solid var(--border);
+  color: var(--muted);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+/* Severity, status and claim badges */
+.sev-critical {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.sev-high {
+  border-color: #f0883e;
+  color: #f0883e;
+}
+
+.sev-medium {
+  border-color: var(--warn);
+  color: var(--warn);
+}
+
+.sev-low {
+  color: var(--muted);
+}
+
+.status-open,
+.status-pending {
+  color: var(--accent-2);
+  border-color: var(--accent-2);
+}
+
+.status-investigating,
+.status-approved {
+  color: var(--warn);
+  border-color: var(--warn);
+}
+
+.status-resolved,
+.status-executed,
+.status-active {
+  color: var(--ok);
+  border-color: var(--ok);
+}
+
+.status-false_positive,
+.status-merged,
+.status-cancelled,
+.status-rejected,
+.status-expired,
+.status-suppressed {
+  color: var(--muted);
+}
+
+.claim-fact {
+  color: var(--ok);
+  border-color: var(--ok);
+}
+
+.claim-inference {
+  color: var(--accent-2);
+  border-color: var(--accent-2);
+}
+
+.claim-hypothesis {
+  color: var(--warn);
+  border-color: var(--warn);
+}
+
+.claim-unknown {
+  color: var(--muted);
+}
+
+/* Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: grid;
+  place-items: center;
+  z-index: 50;
+  padding: 1rem;
+}
+
+.modal {
+  width: min(520px, 100%);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}

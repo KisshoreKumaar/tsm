@@ -1,0 +1,43 @@
+{
+  "attack_version": "19.2",
+  "verified_on": "2026-09-15",
+  "verified_against": "https://attack.mitre.org/techniques/ (each technique page fetched and checked for ID, name and tactics)",
+  "attribution": "MITRE ATT&CK® content © The MITRE Corporation. This work is reproduced and distributed with the permission of The MITRE Corporation. ATT&CK® is a registered trademark of The MITRE Corporation.",
+  "notes": [
+    "Only IDs checked against attack.mitre.org are listed. Add techniques only after verifying them on the live site.",
+    "T1070.001 (Clear Windows Event Logs) now redirects to T1685.005 in ATT&CK v19; AEGIS uses the current ID.",
+    "ATT&CK v19 splits the former Defense Evasion tactic into Stealth (TA0005) and Defense Impairment (TA0112)."
+  ],
+  "tactics": [
+    {"id": "TA0043", "name": "Reconnaissance"},
+    {"id": "TA0042", "name": "Resource Development"},
+    {"id": "TA0001", "name": "Initial Access"},
+    {"id": "TA0002", "name": "Execution"},
+    {"id": "TA0003", "name": "Persistence"},
+    {"id": "TA0004", "name": "Privilege Escalation"},
+    {"id": "TA0005", "name": "Stealth"},
+    {"id": "TA0112", "name": "Defense Impairment"},
+    {"id": "TA0006", "name": "Credential Access"},
+    {"id": "TA0007", "name": "Discovery"},
+    {"id": "TA0008", "name": "Lateral Movement"},
+    {"id": "TA0009", "name": "Collection"},
+    {"id": "TA0011", "name": "Command and Control"},
+    {"id": "TA0010", "name": "Exfiltration"},
+    {"id": "TA0040", "name": "Impact"}
+  ],
+  "techniques": [
+    {"id": "T1003", "name": "OS Credential Dumping", "tactics": ["Credential Access"], "url": "https://attack.mitre.org/techniques/T1003/"},
+    {"id": "T1021", "name": "Remote Services", "tactics": ["Lateral Movement"], "url": "https://attack.mitre.org/techniques/T1021/"},
+    {"id": "T1041", "name": "Exfiltration Over C2 Channel", "tactics": ["Exfiltration"], "url": "https://attack.mitre.org/techniques/T1041/"},
+    {"id": "T1046", "name": "Network Service Discovery", "tactics": ["Discovery"], "url": "https://attack.mitre.org/techniques/T1046/"},
+    {"id": "T1059.001", "name": "Command and Scripting Interpreter: PowerShell", "tactics": ["Execution"], "url": "https://attack.mitre.org/techniques/T1059/001/"},
+    {"id": "T1078", "name": "Valid Accounts", "tactics": ["Initial Access", "Persistence", "Privilege Escalation", "Stealth"], "url": "https://attack.mitre.org/techniques/T1078/"},
+    {"id": "T1087", "name": "Account Discovery", "tactics": ["Discovery"], "url": "https://attack.mitre.org/techniques/T1087/"},
+    {"id": "T1098", "name": "Account Manipulation", "tactics": ["Persistence", "Privilege Escalation"], "url": "https://attack.mitre.org/techniques/T1098/"},
+    {"id": "T1105", "name": "Ingress Tool Transfer", "tactics": ["Command and Control"], "url": "https://attack.mitre.org/techniques/T1105/"},
+    {"id": "T1110", "name": "Brute Force", "tactics": ["Credential Access"], "url": "https://attack.mitre.org/techniques/T1110/"},
+    {"id": "T1136", "name": "Create Account", "tactics": ["Persistence"], "url": "https://attack.mitre.org/techniques/T1136/"},
+    {"id": "T1486", "name": "Data Encrypted for Impact", "tactics": ["Impact"], "url": "https://attack.mitre.org/techniques/T1486/"},
+    {"id": "T1685.005", "name": "Disable or Modify Tools: Clear Windows Event Logs", "tactics": ["Defense Impairment"], "url": "https://attack.mitre.org/techniques/T1685/005/"}
+  ]
+}

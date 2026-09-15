@@ -14,6 +14,7 @@ from app.core.errors import NotFound
 from app.core.permissions import AUDIT_EXPORT, AUTHENTICATED, READ
 from app.core.routing import api_router
 from app.core.sse import event_stream
+from app.features.core.routes import register_core_routes
 
 Reader = Annotated[Principal, Depends(require(READ))]
 Authenticated = Annotated[Principal, Depends(require(AUTHENTICATED))]
@@ -89,4 +90,5 @@ def router() -> APIRouter:
             headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"},
         )
 
+    register_core_routes(r)
     return r

@@ -94,6 +94,29 @@ finalisation, provider settings, tokens and audit are human-only.
 model-facing keys, chunked tasks when output exceeds the provider's budget, precomputation with supersession, and a
 cache keyed by (task, revision, prompt version, provider, model).
 
+## D-019 — ATT&CK v19.2 renumbering
+Every technique ID was checked against attack.mitre.org on 2026-09-15. The spec's T1070.001 (Clear Windows Event
+Logs) now redirects to **T1685.005 "Disable or Modify Tools: Clear Windows Event Logs"**, so LOG-001 uses T1685.005.
+ATT&CK v19 split the former Defense Evasion tactic into **Stealth** (TA0005) and **Defense Impairment** (TA0112);
+T1078 now lists Stealth. Rules take stage names from the verified catalog rather than hardcoding old tactic names.
+
+## D-020 — Phase 1 ingestion and workflow defaults
+- `timestamp` is required (no server-time default), so replays and retries stay deterministic.
+- `criticality` defaults to 3 (unknown/medium) and `privileged` to false; both are source-reported, not verified.
+- Asset, user, domain and hashes are case-folded for correlation; the submitted JSON is stored verbatim (semantic
+  JSON, not byte-exact).
+- A batch writes one `events.ingested` audit record listing the stored event IDs; duplicates change nothing and are
+  not audited.
+- PROC-001 also accepts the en/em dash parameter prefixes PowerShell honours, in addition to `-` and `/`.
+- FILE-001 counts changes within one correlated component (asset + user); bursts spread across users on one asset
+  are not combined.
+- Detections are recomputed per component; their IDs are deterministic (UUIDv5 of rule, group and evidence), so
+  unchanged detections keep their IDs.
+- Adding a note bumps the incident revision and therefore cancels pending/approved responses (spec: any incident
+  change cancels them).
+- The approval confirmation phrase is `APPROVE SIMULATION`; the UI shows it in the dialog.
+- Simulated-response helpers live in `app/response/` (a domain module alongside ingest/detection/correlation).
+
 ## D-018 — Provider presets needing verification
 The Gemini preset uses the user-supplied `gemini-1.5-flash`; Google may have retired the 1.5 models, so the model field
 is editable and Test connection surfaces a rejection. The Ollama server is reachable publicly without authentication;

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import uuid
 from pathlib import Path
 from typing import Annotated, Any
 
@@ -13,7 +14,7 @@ from app.core.config import Settings, make_identity
 from app.core.context import CtxDep
 from app.core.features import FeatureSpec, JobKind, NavItem
 from app.core.jobs import Job, JobError, JobOutcome
-from app.core.permissions import INVESTIGATE, READ, ROLES
+from app.core.permissions import INVESTIGATE, READ, ROLE_PERMISSIONS, ROLES
 from app.core.routing import api_router
 
 AUDIT_KEY = "test-audit-key-" + "k" * 40
@@ -22,6 +23,34 @@ TOKENS: dict[str, str] = {role: f"test-{role}-token-" + "x" * 32 for role in ROL
 
 def auth(role: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {TOKENS[role]}"}
+
+
+def principal(role: str) -> Principal:
+    return Principal(f"{role}-user", role, ROLE_PERMISSIONS[role])
+
+
+def run_scenario(ctx: Any, scenario: str, mode: str = "instant", role: str = "analyst") -> dict[str, Any]:
+    result: dict[str, Any] = ctx.service("demo").run(scenario, mode, principal(role))
+    return result
+
+
+def raw_event(**overrides: Any) -> dict[str, Any]:
+    """A valid raw event (timestamps default to one hour before the test clock)."""
+    event: dict[str, Any] = {
+        "event_id": f"evt-{uuid.uuid4().hex[:12]}",
+        "source": "test-source",
+        "timestamp": "2026-01-15T08:00:00Z",
+        "asset": "host-1",
+        "user": "alice",
+        "kind": "auth_failure",
+        "source_ip": "192.0.2.10",
+    }
+    event.update(overrides)
+    return event
+
+
+def failures(count: int = 5, *, minute: int = 0, **overrides: Any) -> list[dict[str, Any]]:
+    return [raw_event(timestamp=f"2026-01-15T08:{minute:02d}:{index * 5:02d}Z", **overrides) for index in range(count)]
 
 
 def make_settings(tmp_path: Path, **overrides: Any) -> Settings:
