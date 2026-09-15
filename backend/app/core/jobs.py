@@ -256,7 +256,7 @@ class JobQueue:
         if not ignore_schedule:
             sql += " AND run_after <= ?"
             params.append(now)
-        sql += " ORDER BY priority, run_after, created_at, id LIMIT 1"
+        sql += " ORDER BY priority, run_after, created_at, rowid LIMIT 1"  # FIFO for same-timestamp jobs
         with self._db.read() as reader:
             if reader.one(sql, params) is None:
                 return None
@@ -377,14 +377,14 @@ class JobQueue:
     def queue_position(self, job_id: str) -> int | None:
         with self._db.read() as session:
             row = session.one(
-                "SELECT lane, status, priority, run_after, created_at, id FROM jobs WHERE id = ?", (job_id,)
+                "SELECT lane, status, priority, run_after, created_at, rowid AS seq FROM jobs WHERE id = ?", (job_id,)
             )
             if row is None or row["status"] != "QUEUED":
                 return None
             ahead = session.scalar(
                 "SELECT count(*) FROM jobs WHERE lane = ? AND (status = 'RUNNING' OR "
-                "(status = 'QUEUED' AND (priority, run_after, created_at, id) < (?, ?, ?, ?)))",
-                (row["lane"], row["priority"], row["run_after"], row["created_at"], row["id"]),
+                "(status = 'QUEUED' AND (priority, run_after, created_at, rowid) < (?, ?, ?, ?)))",
+                (row["lane"], row["priority"], row["run_after"], row["created_at"], row["seq"]),
             )
         return int(ahead) + 1
 

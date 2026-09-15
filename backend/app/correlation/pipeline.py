@@ -323,7 +323,7 @@ class IngestPipeline:
         existing = session.all(
             f"SELECT DISTINCT i.* FROM incidents i JOIN incident_events ie ON ie.incident_id = i.id "
             f"WHERE ie.event_id IN ({_marks(ids)}) AND i.status != 'MERGED' "
-            "ORDER BY i.first_detected_at, i.created_at, i.id",
+            "ORDER BY i.first_detected_at, i.created_at, i.rowid",
             ids,
         )
         old_rows = session.all(

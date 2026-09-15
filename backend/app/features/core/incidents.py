@@ -165,7 +165,7 @@ class IncidentService:
             note_owners = [incident_id, *(m["id"] for m in merged)]
             notes = session.all(
                 f"SELECT * FROM incident_notes WHERE incident_id IN ({','.join('?' * len(note_owners))}) "
-                "ORDER BY created_at, id",
+                "ORDER BY created_at, rowid",  # insertion order breaks same-timestamp ties
                 note_owners,
             )
             responses = session.all(

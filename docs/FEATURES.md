@@ -7,8 +7,8 @@ A feature is `done` only after its acceptance tests have been run and passed.
 |---|---|---|---|---|
 | PLATFORM | Scaffold: config, migrations, feature registry, audit chain, jobs, SSE, FakeProvider, CI, UI shell | 0 | done | `core` (always on) |
 | CORE | Ingestion, detection, risk scoring, incidents, simulated response, RBAC, audit, demo scenarios, UI shell | 1 | done | `core` (always on) |
-| F1 | Alert correlation: campaigns, entity index, explained links, graph | 2 | planned | `f1` |
-| F2 | Alert story: deterministic (phase 2), AI polish (phase 3) | 2, 3 | planned | `f2` |
+| F1 | Alert correlation: campaigns, entity index, explained links, graph | 2 | done | `f1` |
+| F2 | Alert story: deterministic (phase 2, done), AI polish (phase 3) | 2, 3 | in-progress | `f2` |
 | X1 | LLM provider settings with a UI API-key field | 3 | planned | `x1` |
 | F3 | AI analyst (grounded Q&A, quick and deep modes) | 3 | planned | `f3` |
 | X2 | Agent console: reads every module, proposes changes a human applies | 3 (core), 4–6 (tools) | planned | `x2` |

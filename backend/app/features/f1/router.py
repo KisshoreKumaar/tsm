@@ -27,7 +27,7 @@ def router() -> APIRouter:
         offset: Annotated[int, Query(ge=0, le=1_000_000)] = 0,
         limit: Annotated[int, Query(ge=1, le=200)] = 50,
     ) -> dict[str, Any]:
-        result: dict[str, Any] = ctx.service("campaigns").list(status=status, offset=offset, limit=limit)
+        result: dict[str, Any] = ctx.service("campaigns").search(status=status, offset=offset, limit=limit)
         return result
 
     @r.get("/campaigns/{campaign_id}")

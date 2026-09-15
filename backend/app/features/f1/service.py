@@ -105,7 +105,7 @@ class CampaignService:
         components = link_components(nodes, links)
         components.sort(key=lambda members: (min(nodes[i].first_seen for i in members), members[0]))
 
-        existing = session.all("SELECT * FROM campaigns WHERE status = 'ACTIVE' ORDER BY created_at, id")
+        existing = session.all("SELECT * FROM campaigns WHERE status = 'ACTIVE' ORDER BY created_at, rowid")
         membership: dict[str, set[str]] = defaultdict(set)
         for row in session.all(
             "SELECT ci.campaign_id, ci.incident_id FROM campaign_incidents ci JOIN campaigns c ON c.id = ci.campaign_id "
@@ -336,7 +336,7 @@ class CampaignService:
         with self._ctx.db.read() as session:
             return int(session.scalar("SELECT count(*) FROM campaigns WHERE status = 'ACTIVE'"))
 
-    def list(self, *, status: str = "ACTIVE", offset: int = 0, limit: int = 50) -> dict[str, Any]:
+    def search(self, *, status: str = "ACTIVE", offset: int = 0, limit: int = 50) -> dict[str, Any]:
         with self._ctx.db.read() as session:
             total = session.scalar("SELECT count(*) FROM campaigns WHERE status = ?", (status,))
             rows = session.all(

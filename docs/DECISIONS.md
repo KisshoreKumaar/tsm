@@ -121,3 +121,24 @@ T1078 now lists Stealth. Rules take stage names from the verified catalog rather
 The Gemini preset uses the user-supplied `gemini-1.5-flash`; Google may have retired the 1.5 models, so the model field
 is editable and Test connection surfaces a rejection. The Ollama server is reachable publicly without authentication;
 the team should restrict its security group or tunnel it.
+
+## D-021 — Campaign link rules (F1)
+- Links require different assets and activity windows at most `AEGIS_CAMPAIGN_WINDOW_SECONDS` (default 24 h) apart.
+- Linkable entities: user, external source IP, external destination IP, domain, file hash. RFC 1918, CGNAT,
+  loopback, link-local and ULA addresses never link (shared infrastructure would over-link); documentation ranges
+  used by synthetic data count as external.
+- The common-entity allowlist accepts `type:value` or `ip:value`. "Maximum link degree" means an entity shared by
+  more than `AEGIS_MAX_LINK_DEGREE` incidents creates no links.
+- FALSE_POSITIVE and MERGED incidents are excluded, so closing incidents as false positives can dissolve a campaign.
+- Campaigns are connected components (transitive): A–B and B–C form one campaign even if A and C are too far apart.
+- Campaigns are recomputed inside the transaction that changed incidents (ingestion or review) via incident-change
+  hooks; the oldest overlapping campaign keeps its ID, others become MERGED, and unlinked ones become DISSOLVED.
+- Link strength is a heuristic: an entity-type weight reduced by up to half as the time gap approaches the window.
+
+## D-022 — Story sentences about AEGIS records (F2)
+Event-based FACT sentences must cite at least one event ID. Sentences that state AEGIS's own workflow state (incident
+status, response requests, simulated containment) are labelled FACT with `basis: "aegis_records"` and reference the
+record IDs instead of events. The citation validator enforces event citations only for `basis: "events"`.
+Deterministic stories are rebuilt on every request (always current); "regenerate" saves a version, and the stale flag
+compares the latest saved version's incident revision with the current one. AI polish (Phase 3) replaces the
+displayed story only when a validated version exists for the current revision.

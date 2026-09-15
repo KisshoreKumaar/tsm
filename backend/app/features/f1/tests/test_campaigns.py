@@ -111,7 +111,12 @@ def test_internal_ips_and_distant_activity_do_not_link(client: TestClient) -> No
     assert active_campaigns(client) == []  # outside the 24-hour campaign window
     ingest(client, burst("host-e", "erin", "198.51.100.9", BASE - timedelta(hours=2)))
     [campaign] = active_campaigns(client)
-    assert campaign["incident_count"] == 2  # host-e links to host-d (2 h apart) but not to host-c (23 h + before e)
+    # host-e is ~23 h after host-c and 2 h before host-d, so it links to both; campaigns are transitive components
+    # even though host-c and host-d alone are too far apart to link directly.
+    assert campaign["incident_count"] == 3
+    detail = client.get(f"/api/campaigns/{campaign['id']}", headers=auth("viewer")).json()
+    pairs = {frozenset((link["asset_a"], link["asset_b"])) for link in detail["links"]}
+    assert pairs == {frozenset(("host-c", "host-e")), frozenset(("host-d", "host-e"))}
 
 
 def test_false_positive_closure_updates_and_dissolves_campaign(client: TestClient, ctx: AppContext) -> None:
