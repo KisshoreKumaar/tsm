@@ -11,8 +11,8 @@ A feature is `done` only after its acceptance tests have been run and passed.
 | F2 | Alert story: deterministic (phase 2), validated AI polish (phase 3) | 2, 3 | done | `f2` |
 | X1 | LLM provider settings with a UI API-key field | 3 | done | `x1` |
 | F3 | AI analyst (grounded Q&A, quick and deep modes) | 3 | done | `f3` |
-| X2 | Agent console: reads every module, proposes changes a human applies | 3 (core), 4–6 (tools) | in-progress (core done; tools for F4/A3/A5/I1 arrive with them) | `x2` |
-| F4 | Attack prediction, next-step prediction, watchlist | 4 | planned | `f4` |
+| X2 | Agent console: reads every module, proposes changes a human applies | 3 (core), 4–6 (tools) | in-progress (core and F4 tools done; A3/A5/I1 tools arrive with them) | `x2` |
+| F4 | Attack prediction, next-step prediction, watchlist | 4 | done | `f4` |
 | A3 | AI detection engineer: DSL, backtest, lifecycle | 5 | planned | `a3` |
 | A5 | Learning from false positives: analytics, tuning suggestions, suppressions | 5 | planned | `a5` |
 | I1 | CERT-In incident report drafts with deadline tracking | 6 | planned | `i1` |
@@ -126,8 +126,8 @@ fail to apply; injection corpus cannot yield approve/execute proposals; step cap
 
 **Phase 3 status:** proposable actions are `incident.update`, `incident.note`, `response.recommend` and
 `demo.replay`; read tools cover CORE, F1, F2 and F3. `rule.draft`/`rule.backtest`, `tuning.suggest` and
-`report.cert_in.draft` proposals plus their read tools are registered by A3, A5 and I1 in Phases 5–6 (F4 tools in
-Phase 4 replace the `get_predictions` stub). Manual live check: `scripts/llm_smoke.py`.
+`report.cert_in.draft` proposals plus their read tools are registered by A3, A5 and I1 in Phases 5–6. F4 registers
+`get_predictions` and `list_watchlist` (Phase 4). Manual live check: `scripts/llm_smoke.py`.
 
 ## F4 — Attack prediction and watchlist (Phase 4)
 
@@ -139,6 +139,12 @@ Phase 4 replace the `get_predictions` stub). Manual live check: `scripts/llm_smo
 
 **Acceptance:** attack-chain replay: execution prediction appears after brute force + success and flips to OBSERVED
 when PowerShell arrives; invalid technique IDs rejected; works with the LLM disabled.
+
+**Phase 4 status:** `data/attack/transitions.json` (12 curated transitions, 9 watch profiles) validated at startup;
+engine in `app/prediction/` (pure function of events and detections, arrival-order invariant, see D-026); API
+`GET /api/incidents/{id}/predictions`, `POST …/predictions/explain`, `GET /api/predictions`,
+`GET /api/metrics/prediction-hit-rate`, `GET /api/attack/transitions`; UI "Likely next" incident tab with prediction
+timeline, watchlist page and live "prediction observed" alerts. Evaluation reports observed predictions per scenario.
 
 ## A3 — AI detection engineer (Phase 5)
 

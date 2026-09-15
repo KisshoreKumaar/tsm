@@ -327,7 +327,12 @@ SCENARIOS: dict[str, Scenario] = {
             "Brute force → login → encoded PowerShell → discovery",
             "Five failed logins, a successful login, encoded PowerShell and a burst of service connections: one incident.",
             _attack_chain_steps,
-            {"incidents": 1, "campaigns": 0, "rules": ["AUTH-001", "AUTH-002", "NET-001", "PROC-001"]},
+            {
+                "incidents": 1,
+                "campaigns": 0,
+                "rules": ["AUTH-001", "AUTH-002", "NET-001", "PROC-001"],
+                "predictions_observed": ["T1046", "T1059.001", "T1078"],
+            },
         ),
         Scenario(
             "benign",
@@ -341,7 +346,12 @@ SCENARIOS: dict[str, Scenario] = {
             "Attack chain arriving out of order",
             "The attack-chain steps arrive newest first; the result must be identical to attack-chain.",
             _attack_chain_steps,
-            {"incidents": 1, "campaigns": 0, "rules": ["AUTH-001", "AUTH-002", "NET-001", "PROC-001"]},
+            {
+                "incidents": 1,
+                "campaigns": 0,
+                "rules": ["AUTH-001", "AUTH-002", "NET-001", "PROC-001"],
+                "predictions_observed": ["T1046", "T1059.001", "T1078"],
+            },
             release_reversed=True,
         ),
         Scenario(
@@ -356,7 +366,7 @@ SCENARIOS: dict[str, Scenario] = {
             "Same account and source IP across three servers",
             "The same user and external source IP brute-force and log in to three servers: three incidents, one campaign.",
             _lateral_steps,
-            {"incidents": 3, "campaigns": 1, "rules": ["AUTH-001", "AUTH-002"]},
+            {"incidents": 3, "campaigns": 1, "rules": ["AUTH-001", "AUTH-002"], "predictions_observed": ["T1078"]},
             step_gap_seconds=60.0,
         ),
         Scenario(

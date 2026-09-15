@@ -53,6 +53,19 @@ def scenario_outcome(ctx: AppContext) -> dict[str, Any]:
     campaigns = ctx.services.get("campaigns")
     if campaigns is not None:
         outcome["campaigns"] = campaigns.count()
+    predictions = ctx.services.get("predictions")
+    if predictions is not None:
+        rate = predictions.hit_rate()
+        with ctx.db.read() as session:
+            observed = session.all(
+                "SELECT DISTINCT p.technique_id FROM predictions p JOIN incidents i ON i.id = p.incident_id "
+                "WHERE p.status = 'OBSERVED' AND i.status != 'MERGED' ORDER BY p.technique_id"
+            )
+        outcome["predictions"] = {
+            "observed": rate["observed"],
+            "total": rate["total"],
+            "observed_techniques": [row["technique_id"] for row in observed],
+        }
     verification = ctx.audit.verify(ctx.db)
     outcome["audit_valid"] = verification["valid"]
     return outcome
@@ -74,6 +87,10 @@ def evaluate_scenarios() -> list[dict[str, Any]]:
             checks["techniques"] = actual["techniques"] == sorted(scenario.expected["techniques"])
         if "campaigns" in actual:
             checks["campaigns"] = actual["campaigns"] == scenario.expected["campaigns"]
+        if "predictions" in actual and "predictions_observed" in scenario.expected:
+            checks["predictions"] = actual["predictions"]["observed_techniques"] == sorted(
+                scenario.expected["predictions_observed"]
+            )
         rows.append({"scenario": scenario.id, "expected": scenario.expected, "actual": actual, "checks": checks})
     return rows
 
@@ -82,15 +99,26 @@ def run_evaluation() -> int:
     rows = evaluate_scenarios()
     failures = 0
     print("AEGIS scenario evaluation (synthetic expectations; not a real-world benchmark)")
-    print(f"{'scenario':<20} {'incidents':>11} {'campaigns':>11}  rules")
+    print(f"{'scenario':<20} {'incidents':>11} {'campaigns':>11} {'predicted':>11}  rules")
+    observed_total = predicted_total = 0
     for row in rows:
         expected, actual, checks = row["expected"], row["actual"], row["checks"]
         ok = all(checks.values())
         failures += 0 if ok else 1
         campaigns = f"{actual.get('campaigns', '-')}/{expected['campaigns']}" if "campaigns" in actual else "n/a"
+        prediction = actual.get("predictions")
+        predicted = f"{prediction['observed']}/{prediction['total']} obs" if prediction else "n/a"
+        if prediction:
+            observed_total += prediction["observed"]
+            predicted_total += prediction["total"]
         print(
-            f"{row['scenario']:<20} {actual['incidents']:>5}/{expected['incidents']:<5} {campaigns:>11}  "
+            f"{row['scenario']:<20} {actual['incidents']:>5}/{expected['incidents']:<5} {campaigns:>11} {predicted:>11}  "
             f"{','.join(actual['rules']) or '-'}  {'PASS' if ok else 'FAIL ' + str([k for k, v in checks.items() if not v])}"
+        )
+    if predicted_total:
+        print(
+            f"\nPrediction hit rate across scenarios: {observed_total}/{predicted_total} observed "
+            f"({observed_total / predicted_total:.0%}; descriptive, not a probability)"
         )
     print(f"\n{len(rows) - failures}/{len(rows)} scenarios passed")
     return 0 if failures == 0 else 1

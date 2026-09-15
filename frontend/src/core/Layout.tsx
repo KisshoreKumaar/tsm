@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { buildNav } from "../featureManifest";
+import { PredictionAlerts } from "../features/f4/PredictionAlerts";
 import { AiStatusChip } from "../features/x1/AiStatusChip";
 import { AgentDrawer } from "../features/x2/AgentDrawer";
 import { useAuth } from "./auth";
@@ -53,6 +54,7 @@ export function Layout() {
           <Outlet />
         </main>
       </div>
+      {enabled.has("f4") && can("read") && <PredictionAlerts />}
       {agentAvailable && agentOpen && <AgentDrawer onClose={() => setAgentOpen(false)} />}
     </div>
   );

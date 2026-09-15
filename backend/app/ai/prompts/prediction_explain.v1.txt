@@ -1,0 +1,6 @@
+Explain the ranked next-step hypotheses below for an analyst, using only the evidence. Scores are heuristics, not probabilities: never change them or describe them as chances.
+Predictions:
+{predictions}
+JSON schema: {"s":"summary","p":[{"id":"P1","t":"why it may be next and what to watch","e":["E1"]}],"x":null}
+Limits: summary at most {summary_words} words; at most {max_items} items using only the ids listed, each at most {claim_words} words and citing evidence aliases in "e".
+"x" stays null unless the evidence clearly supports one more ATT&CK technique that is not listed; then use {"technique":"T1234","t":"short rationale","e":["E2"]}.

@@ -11,6 +11,7 @@ import { RulesPage } from "./features/core/RulesPage";
 import { CampaignPage } from "./features/f1/CampaignPage";
 import { CampaignsPage } from "./features/f1/CampaignsPage";
 import { GraphPage } from "./features/f1/GraphPage";
+import { WatchlistPage } from "./features/f4/WatchlistPage";
 import { AiProvidersPage } from "./features/x1/AiProvidersPage";
 import { AiStatusPage } from "./features/x1/AiStatusPage";
 import { ProposalsPage } from "./features/x2/ProposalsPage";
@@ -51,6 +52,10 @@ export const FRONTEND_FEATURES: FrontendFeature[] = [
       { path: "/campaigns/:id", Component: CampaignPage },
       { path: "/graph", Component: GraphPage },
     ],
+  },
+  {
+    id: "f4",
+    routes: [{ path: "/predictions", Component: WatchlistPage }],
   },
   {
     id: "x1",

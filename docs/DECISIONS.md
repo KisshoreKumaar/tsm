@@ -174,3 +174,27 @@ service (which opens its own write) while the proposal status and both audit rec
   requires `acknowledge_injection` for injection-context proposals.
 - The agent's actor string is `ai:agent (for <human>)`; the applied domain change is attributed to the human who
   applied it, and the `agent.proposal_applied` audit record links both.
+
+## D-026 — Prediction semantics (F4)
+- Predictions are a pure function of an incident's stored events and active detections, evaluated in event time, so
+  arrival order never changes them. The watchlist is that recomputation run in the incident-change hook (same
+  transaction), plus a delayed `prediction.expire` job.
+- A candidate is not predicted when its technique was already established before its predecessor's first evidence.
+- **OBSERVED:** an event outside the predecessor detection's own evidence, timestamped between that detection's first
+  evidence and its last evidence plus the horizon, matches a watch signal. Rule-based signals match the event that
+  completed the detection (its latest evidence), not every evidence event.
+- **EXPIRED:** still unobserved when the clock passes the end of the window. A late-arriving event whose timestamp
+  falls inside the window still marks it OBSERVED (event time wins).
+- One prediction per incident and technique. Several predecessors corroborate (+5) and each opens its own window;
+  the strongest transition supplies the base weight and rationale.
+- Score: transition weight (≤60) + privileged account (10) + successful authentication (10) + asset criticality (≤8) +
+  stages observed (≤9) + recency relative to the incident's latest event (≤8) + campaign breadth (≤5) +
+  corroboration (5), capped at 100; bands LOW < 35 ≤ MEDIUM < 60 ≤ HIGH. Labelled a heuristic, never a probability.
+- Observed predictions feed the existing `observed_prediction` risk factor: when the observed count changes, the
+  incident is re-scored in the same transaction (new revision, audited).
+- Watch-signal conditions use the rule-DSL field grammar in `app/prediction/signals.py`, which A3 reuses. String
+  matching is case-insensitive; the field and operator sets are allowlists.
+- Predictions of merged incidents, or whose predecessors are no longer active (e.g. suppressed), are deleted and
+  audited as `prediction.withdrawn`.
+- `prediction.explain` never changes scores. An AI candidate must be a catalog technique that is not already predicted
+  and must cite valid evidence; it is shown as "AI candidate", unscored and not watched.

@@ -1,0 +1,176 @@
+{
+  "version": 1,
+  "description": "Curated, editable next-step heuristic for AEGIS SOC. Weights and horizons are analyst judgement for ranking attention, not measured frequencies or probabilities.",
+  "notes": [
+    "Every technique ID must exist in techniques.json (verified against attack.mitre.org); loading fails otherwise.",
+    "Watch signals use the same field-condition grammar as the rule DSL: event kinds plus conditions (all must hold), or any listed rule firing on the event.",
+    "Preventive actions may reference only allowlisted simulated playbooks, which still require human approval."
+  ],
+  "profiles": [
+    {
+      "technique": "T1078",
+      "tactic": "Initial Access",
+      "horizon_seconds": 3600,
+      "watch": [
+        {"description": "Successful logon for the account", "kinds": ["auth_success"]},
+        {"description": "Login after repeated failures", "rule_ids": ["AUTH-002"]}
+      ],
+      "actions": [
+        {"text": "Reset the account's password and review its recent logons", "playbook": null},
+        {"text": "Collect an evidence manifest for the asset", "playbook": "collect_evidence"}
+      ]
+    },
+    {
+      "technique": "T1059.001",
+      "tactic": "Execution",
+      "horizon_seconds": 3600,
+      "watch": [
+        {
+          "description": "PowerShell process starts",
+          "kinds": ["process_start", "suspicious_process"],
+          "conditions": [{"field": "process_name", "op": "contains", "value": ["powershell", "pwsh"]}]
+        },
+        {"description": "Suspicious PowerShell flags detected", "rule_ids": ["PROC-001"]}
+      ],
+      "actions": [
+        {"text": "Review PowerShell script block logging on the host", "playbook": null},
+        {"text": "Consider requesting simulated isolation if execution is confirmed", "playbook": "isolate_endpoint"}
+      ]
+    },
+    {
+      "technique": "T1087",
+      "tactic": "Discovery",
+      "horizon_seconds": 7200,
+      "watch": [
+        {
+          "description": "Account or group enumeration commands",
+          "kinds": ["process_start", "suspicious_process"],
+          "conditions": [
+            {
+              "field": "command_line",
+              "op": "contains",
+              "value": ["net user", "net group", "net localgroup", "whoami /groups", "get-aduser", "get-localuser", "dsquery user"]
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {"text": "Alert on directory enumeration by this account", "playbook": null},
+        {"text": "Collect an evidence manifest for the asset", "playbook": "collect_evidence"}
+      ]
+    },
+    {
+      "technique": "T1021",
+      "tactic": "Lateral Movement",
+      "horizon_seconds": 7200,
+      "watch": [
+        {
+          "description": "Logon to this asset from an internal address",
+          "kinds": ["auth_success"],
+          "conditions": [{"field": "source_ip", "op": "cidr", "value": ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]}]
+        }
+      ],
+      "actions": [
+        {"text": "Pivot on the account to check logons on other hosts", "playbook": null},
+        {"text": "Consider requesting simulated isolation of the source host if lateral movement is confirmed", "playbook": "isolate_endpoint"}
+      ]
+    },
+    {
+      "technique": "T1046",
+      "tactic": "Discovery",
+      "horizon_seconds": 3600,
+      "watch": [
+        {"description": "Connections to many internal services", "rule_ids": ["NET-001"]}
+      ],
+      "actions": [
+        {"text": "Block unexpected east-west connections from the host", "playbook": null},
+        {"text": "Consider requesting simulated isolation if scanning continues", "playbook": "isolate_endpoint"}
+      ]
+    },
+    {
+      "technique": "T1105",
+      "tactic": "Command and Control",
+      "horizon_seconds": 3600,
+      "watch": [
+        {
+          "description": "Download commands",
+          "kinds": ["process_start", "suspicious_process"],
+          "conditions": [
+            {
+              "field": "command_line",
+              "op": "contains",
+              "value": ["downloadstring", "downloadfile", "invoke-webrequest", "start-bitstransfer", "certutil -urlcache", "bitsadmin /transfer", "curl ", "wget "]
+            }
+          ]
+        },
+        {
+          "description": "New executable or script written",
+          "kinds": ["file_change"],
+          "conditions": [{"field": "file_path", "op": "endswith", "value": [".exe", ".dll", ".ps1", ".bat"]}]
+        }
+      ],
+      "actions": [
+        {"text": "Review proxy logs for downloads from this host", "playbook": null},
+        {"text": "Collect an evidence manifest for the asset", "playbook": "collect_evidence"}
+      ]
+    },
+    {
+      "technique": "T1003",
+      "tactic": "Credential Access",
+      "horizon_seconds": 3600,
+      "watch": [
+        {
+          "description": "Credential dumping tools or LSASS access",
+          "kinds": ["process_start", "suspicious_process"],
+          "conditions": [{"field": "command_line", "op": "contains", "value": ["lsass", "sekurlsa", "mimikatz", "procdump", "comsvcs.dll"]}]
+        }
+      ],
+      "actions": [
+        {"text": "Plan credential resets for accounts used on this host", "playbook": null},
+        {"text": "Consider requesting simulated isolation if dumping is confirmed", "playbook": "isolate_endpoint"}
+      ]
+    },
+    {
+      "technique": "T1486",
+      "tactic": "Impact",
+      "horizon_seconds": 14400,
+      "watch": [
+        {"description": "Mass file changes", "rule_ids": ["FILE-001"]}
+      ],
+      "actions": [
+        {"text": "Verify offline backups for affected systems", "playbook": null},
+        {"text": "Consider requesting simulated isolation of the host", "playbook": "isolate_endpoint"}
+      ]
+    },
+    {
+      "technique": "T1041",
+      "tactic": "Exfiltration",
+      "horizon_seconds": 14400,
+      "watch": [
+        {
+          "description": "Connection reported as a large upload",
+          "kinds": ["network_connection"],
+          "conditions": [{"field": "details", "op": "contains", "value": ["exfil", "large upload", "bytes_out"]}]
+        }
+      ],
+      "actions": [
+        {"text": "Review outbound volume from this host at the proxy or firewall", "playbook": null},
+        {"text": "Collect an evidence manifest for the asset", "playbook": "collect_evidence"}
+      ]
+    }
+  ],
+  "transitions": [
+    {"from": "T1110", "to": "T1078", "weight": 55, "rationale": "Password guessing is usually followed by a login with a guessed credential."},
+    {"from": "T1078", "to": "T1059.001", "weight": 45, "rationale": "With a working session, attackers commonly run PowerShell to execute commands."},
+    {"from": "T1078", "to": "T1087", "weight": 35, "rationale": "A valid account is typically used to enumerate accounts and groups before escalating."},
+    {"from": "T1078", "to": "T1021", "weight": 30, "rationale": "Valid credentials are frequently reused to reach other hosts over remote services."},
+    {"from": "T1059.001", "to": "T1046", "weight": 40, "rationale": "Scripted execution is often used to scan the internal network for reachable services."},
+    {"from": "T1059.001", "to": "T1105", "weight": 35, "rationale": "PowerShell is a common way to download additional tools onto a compromised host."},
+    {"from": "T1059.001", "to": "T1003", "weight": 30, "rationale": "Attackers with code execution often try to dump credentials from memory."},
+    {"from": "T1046", "to": "T1021", "weight": 40, "rationale": "Discovered remote services such as SMB, RDP, SSH or WinRM are natural targets for lateral movement."},
+    {"from": "T1021", "to": "T1486", "weight": 25, "rationale": "Ransomware operators spread through remote services before encrypting data."},
+    {"from": "T1021", "to": "T1041", "weight": 25, "rationale": "Access to more hosts is often followed by staging and exfiltrating data."},
+    {"from": "T1136", "to": "T1078", "weight": 40, "rationale": "A newly created account is typically used to log in later for persistent access."},
+    {"from": "T1098", "to": "T1078", "weight": 35, "rationale": "A manipulated account, for example one given new privileges, is usually used soon after."}
+  ]
+}

@@ -165,10 +165,6 @@ def list_rules(tc: ToolContext, _: NoArgs) -> dict[str, Any]:
     return {"rules": [[r["id"], r["name"], r["stage"]] for r in tc.ctx.service("rules").describe()]}
 
 
-def get_predictions(tc: ToolContext, _: IncidentArg) -> dict[str, Any]:
-    return {"available": False, "note": "Attack prediction is not enabled in this build."}
-
-
 def get_false_positive_history(tc: ToolContext, args: RuleArg) -> dict[str, Any]:
     clauses, params = ["i.status = 'FALSE_POSITIVE'"], []
     if args.rule_id:
@@ -221,7 +217,6 @@ def builtin_tools() -> list[ToolSpec]:
         ToolSpec("get_incident", "core", "incident summary, stages, detections", IncidentArg, get_incident),
         ToolSpec("search_events", "core", "search stored events (query, kind, asset, user)", SearchArgs, search_events),
         ToolSpec("list_rules", "core", "detection rules", NoArgs, list_rules),
-        ToolSpec("get_predictions", "core", "predicted next attacker steps", IncidentArg, get_predictions),
         ToolSpec(
             "get_false_positive_history",
             "core",
@@ -258,6 +253,7 @@ def builtin_tools() -> list[ToolSpec]:
     ]
 
 
+# Names only: tools of disabled features (e.g. F4's get_predictions) are simply absent from the loop.
 F3_DEEP_TOOLS = (
     "get_incident",
     "get_story",
