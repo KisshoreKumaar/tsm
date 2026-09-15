@@ -1,0 +1,36 @@
+[project]
+name = "aegis-soc"
+version = "0.1.0"
+description = "AEGIS SOC: AI-assisted Security Operations workbench (evidence-first, human-approved)"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = [".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "SIM", "RUF"]
+# S608: SQL is always parameterised; dynamic fragments are built only from fixed allowlists (see CLAUDE.md).
+# S311: `random` is used only for synthetic demo data.
+ignore = ["S608", "S311", "RUF012", "SIM108"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106", "S108", "B017"]
+"app/**/tests/**" = ["S101", "S105", "S106", "S108", "B017"]
+"conftest.py" = ["S101", "S105", "S106"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+check_untyped_defs = true
+warn_redundant_casts = true
+exclude = ["(^|/)tests/"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "app"]
+addopts = "--strict-markers"
+markers = ["slow: property-based or long-running tests"]
