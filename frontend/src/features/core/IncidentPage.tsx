@@ -5,11 +5,10 @@ import { errorMessage, formatTime } from "../../core/format";
 import { Card, ClaimLabel, ErrorBanner, KeyValues, Loading, SeverityBadge, StatusBadge, Tabs } from "../../core/ui";
 import { useApiQuery } from "../../core/useApiQuery";
 import { useLiveEvents } from "../../core/useLiveEvents";
+import { enabledIncidentTabs } from "../incidentTabs";
 import { ResponsesPanel } from "./ResponsesPanel";
 import { ReviewForm } from "./ReviewForm";
 import type { EventRecord, IncidentDetail, PlaybookInfo } from "./types";
-
-type TabId = "analysis" | "timeline" | "detections" | "review" | "responses";
 
 export function eventSummary(event: EventRecord): string {
   switch (event.kind) {
@@ -106,8 +105,8 @@ function RequestResponse({ incident, playbooks, onDone }: { incident: IncidentDe
 
 export function IncidentPage() {
   const { id = "" } = useParams();
-  const { can } = useAuth();
-  const [tab, setTab] = useState<TabId>("analysis");
+  const { can, principal } = useAuth();
+  const [tab, setTab] = useState<string>("analysis");
   const [highlight, setHighlight] = useState<Set<string>>(new Set());
   const { data: incident, error, loading, refetch } = useApiQuery<IncidentDetail>(`/incidents/${id}`);
   const { data: playbooks } = useApiQuery<PlaybookInfo>("/playbooks");
@@ -125,6 +124,8 @@ export function IncidentPage() {
     return <ErrorBanner error={error ?? new Error("Incident not found")} />;
   }
 
+  const extraTabs = enabledIncidentTabs(principal?.features ?? []);
+  const activeExtra = extraTabs.find((item) => item.id === tab);
   const showEvidence = (eventIds: string[]) => {
     setHighlight(new Set(eventIds));
     setTab("timeline");
@@ -160,17 +161,21 @@ export function IncidentPage() {
           ["Events", incident.event_count],
         ]}
       />
-      <Tabs<TabId>
+      <Tabs<string>
         tabs={[
           { id: "analysis", label: "Analysis" },
+          ...extraTabs.filter((item) => item.order < 50).map((item) => ({ id: item.id, label: item.label })),
           { id: "timeline", label: `Timeline (${incident.events.length})` },
           { id: "detections", label: `Detections (${incident.detections.length})` },
           { id: "review", label: `Review & notes (${incident.notes.length})` },
           { id: "responses", label: `Responses (${incident.responses.length})` },
+          ...extraTabs.filter((item) => item.order >= 50).map((item) => ({ id: item.id, label: item.label })),
         ]}
         active={tab}
         onChange={setTab}
       />
+
+      {activeExtra && <activeExtra.Component incident={incident} onCite={showEvidence} />}
 
       {tab === "analysis" && (
         <div className="grid-2">
@@ -233,7 +238,7 @@ export function IncidentPage() {
           actions={
             highlight.size > 0 && (
               <button type="button" className="ghost" onClick={() => setHighlight(new Set())}>
-                Clear highlight
+                Clear highlight ({highlight.size})
               </button>
             )
           }

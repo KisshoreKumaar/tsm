@@ -1,0 +1,36 @@
+.graph {
+  width: 100%;
+  min-height: 320px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+.graph-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 0.5rem 0;
+}
+
+.graph-legend span::before {
+  content: "";
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  margin-right: 0.3rem;
+  vertical-align: middle;
+  background: var(--dot);
+}
+
+.strength-bar {
+  display: inline-block;
+  height: 0.4rem;
+  background: var(--accent);
+  border-radius: 999px;
+  vertical-align: middle;
+  margin-right: 0.35rem;
+}

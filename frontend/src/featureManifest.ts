@@ -8,6 +8,9 @@ import { IncidentsPage } from "./features/core/IncidentsPage";
 import { OverviewPage } from "./features/core/OverviewPage";
 import { ResponsesPage } from "./features/core/ResponsesPage";
 import { RulesPage } from "./features/core/RulesPage";
+import { CampaignPage } from "./features/f1/CampaignPage";
+import { CampaignsPage } from "./features/f1/CampaignsPage";
+import { GraphPage } from "./features/f1/GraphPage";
 
 export interface FrontendRoute {
   path: string;
@@ -21,7 +24,8 @@ export interface FrontendFeature {
 
 /**
  * Frontend half of each feature. The server's manifest (GET /api/me) decides which features are enabled,
- * so a disabled feature has neither routes nor navigation entries here.
+ * so a disabled feature has neither routes nor navigation entries here. Incident-page tabs contributed by
+ * features are registered in `features/incidentTabs.ts`.
  */
 export const FRONTEND_FEATURES: FrontendFeature[] = [
   {
@@ -35,6 +39,14 @@ export const FRONTEND_FEATURES: FrontendFeature[] = [
       { path: "/rules", Component: RulesPage },
       { path: "/demo", Component: DemoPage },
       { path: "/audit", Component: AuditPage },
+    ],
+  },
+  {
+    id: "f1",
+    routes: [
+      { path: "/campaigns", Component: CampaignsPage },
+      { path: "/campaigns/:id", Component: CampaignPage },
+      { path: "/graph", Component: GraphPage },
     ],
   },
 ];

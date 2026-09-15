@@ -1,0 +1,85 @@
+.story-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.story-paragraph {
+  line-height: 1.75;
+  margin: 0 0 1rem;
+}
+
+.story-executive {
+  display: grid;
+  gap: 0.6rem;
+  list-style: none;
+  padding: 0;
+}
+
+.story-executive dt {
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.story-executive dd {
+  margin: 0.1rem 0 0;
+  line-height: 1.6;
+}
+
+button.cite {
+  background: none;
+  border: none;
+  padding: 0 0.2rem;
+  color: var(--accent);
+  font-weight: 500;
+  font-size: 0.8rem;
+}
+
+button.cite:hover {
+  text-decoration: underline;
+}
+
+.cite-records {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+q.untrusted {
+  background: rgba(214, 163, 58, 0.12);
+  border-bottom: 1px dashed var(--warn);
+  padding: 0 0.15rem;
+  font-style: italic;
+}
+
+.badge.ai {
+  border-color: var(--accent-2);
+  color: var(--accent-2);
+}
+
+.badge.stale {
+  border-color: var(--warn);
+  color: var(--warn);
+}
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.segmented button {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+}
+
+.segmented button[aria-pressed="true"] {
+  background: var(--accent);
+  color: #06201d;
+}

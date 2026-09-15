@@ -278,6 +278,7 @@ class IncidentService:
                 },
                 subject=("incident", incident_id),
             )
+            ctx.service("pipeline").notify_incidents_changed(session, [incident_id], principal.name)
             session.after_commit(
                 lambda: ctx.bus.publish("incident.updated", {"incident_id": incident_id, "revision": revision})
             )

@@ -28,6 +28,10 @@ CLOSED_STATUSES = frozenset({"RESOLVED", "FALSE_POSITIVE"})
 
 SuppressionCheck = Callable[[Session, Detection, Sequence[Event]], "str | None"]
 ObservedCounter = Callable[[Session, str], int]
+IncidentsChangedHook = Callable[[Session, Sequence[str], str], None]
+
+# Key in ctx.services holding the per-application list of IncidentsChangedHook callbacks.
+INCIDENT_CHANGE_HOOKS = "incident_change_hooks"
 
 
 @dataclass(frozen=True)
@@ -232,12 +236,26 @@ class IngestPipeline:
                 },
             )
             outcome.changes = self._correlate(session, stored, actor)
+            if outcome.changes:
+                changed = {c.incident_id for c in outcome.changes} | {m for c in outcome.changes for m in c.merged_ids}
+                self.notify_incidents_changed(session, sorted(changed), actor)
             stored_count = len(stored)
             incident_ids = outcome.incident_ids
             session.after_commit(
                 lambda: ctx.bus.publish("events.ingested", {"stored": stored_count, "incident_ids": incident_ids})
             )
         return outcome
+
+    def notify_incidents_changed(self, session: Session, incident_ids: Sequence[str], actor: str) -> None:
+        """Run feature hooks (e.g. campaign recomputation) in the same transaction that changed the incidents."""
+        hooks: list[IncidentsChangedHook] = self._ctx.services.setdefault(INCIDENT_CHANGE_HOOKS, [])
+        for hook in hooks:
+            hook(session, incident_ids, actor)
+
+    @property
+    def change_hooks(self) -> list[IncidentsChangedHook]:
+        hooks: list[IncidentsChangedHook] = self._ctx.services.setdefault(INCIDENT_CHANGE_HOOKS, [])
+        return hooks
 
     def refresh_incident(self, session: Session, incident_id: str, actor: str) -> list[IncidentChange]:
         """Re-evaluate an incident's component (e.g. after a suppression or an observed prediction)."""
@@ -249,7 +267,10 @@ class IngestPipeline:
         if row is None:
             return []
         component = self._component(session, Event.from_row(row))
-        return self._apply_component(session, component, set(), actor)
+        changes = self._apply_component(session, component, set(), actor)
+        if changes:
+            self.notify_incidents_changed(session, [c.incident_id for c in changes], actor)
+        return changes
 
     def _correlate(self, session: Session, new_events: Sequence[Event], actor: str) -> list[IncidentChange]:
         new_ids = {e.id for e in new_events}
