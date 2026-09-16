@@ -137,22 +137,46 @@ def evaluate_workflows() -> list[dict[str, Any]]:
                 )
             tuning.generate_now(EVALUATOR)
             suggestions = [s for s in tuning.search("PROPOSED")["items"] if s["rule_id"] == "NET-001"]
-            suggestion = suggestions[0] if suggestions else None
-            impact = suggestion["impact"] if suggestion else {}
+            ok = False
+            detail_text = "no suggestion was generated"
+            if suggestions:
+                suggestion = suggestions[0]
+                impact = suggestion["impact"]
+                ok = (
+                    suggestion["type"] == "suppression"
+                    and suggestion["scope"]["entities"] == [{"type": "source_ip", "value": "10.20.0.250"}]
+                    and impact["true_positive_alerts_removed"] == 0
+                )
+                detail_text = (
+                    f"{suggestion['type']} scoped to {suggestion['scope']['entities'][0]['value']}: removes "
+                    f"{impact['alerts_removed']} alert(s), {impact['true_positive_alerts_removed']} true positive"
+                )
             rows.append(
                 {
                     "check": "three scanner false positives suggest a scoped suppression with no true-positive loss",
-                    "ok": bool(suggestion)
-                    and suggestion["type"] == "suppression"
-                    and suggestion["scope"]["entities"] == [{"type": "source_ip", "value": "10.20.0.250"}]
-                    and impact["true_positive_alerts_removed"] == 0,
-                    "detail": (
-                        f"{suggestion['type']} scoped to "
-                        f"{suggestion['scope']['entities'][0]['value']}: removes {impact['alerts_removed']} alert(s), "
-                        f"{impact['true_positive_alerts_removed']} true positive"
-                        if suggestion
-                        else "no suggestion was generated"
-                    ),
+                    "ok": ok,
+                    "detail": detail_text,
+                }
+            )
+
+    with tempfile.TemporaryDirectory() as tmp:
+        ctx = evaluation_context(Path(tmp))
+        reports = ctx.services.get("reports")
+        if reports is not None:
+            [incident_id] = ctx.service("demo").run("attack-chain", "instant", EVALUATOR)["incident_ids"]
+            report = reports.draft(incident_id, EVALUATOR)
+            done = report["completeness"]
+            automatic = [f for f in report["fields"] if f["provenance"] in ("auto", "ai")]
+            cited = [f for f in automatic if f["evidence_ids"] or f["refs"]]
+            rows.append(
+                {
+                    "check": "CERT-In draft fills and cites every automatic field, and flags the missing profile",
+                    "ok": done["automatic_filled"] == done["automatic_total"]
+                    and len(cited) == len(automatic)
+                    and "organization_name" in done["missing_required"],
+                    "detail": f"{done['required_filled']}/{done['required_total']} required fields filled, "
+                    f"{len(cited)}/{len(automatic)} automatic fields cited, suggested type "
+                    f"{report['reportability']['incident_type']} ({report['template']['status']} template)",
                 }
             )
     return rows

@@ -27,7 +27,15 @@ from app.core.auth import Principal
 from app.core.errors import ApiError, Conflict, Forbidden, NotFound
 from app.core.jobs import Job, JobError, JobOutcome
 from app.core.jsonutil import canonical_json
-from app.core.permissions import AI_USE, INGEST, INVESTIGATE, RESPOND_RECOMMEND, RULES_DRAFT, TUNING_DRAFT
+from app.core.permissions import (
+    AI_USE,
+    INGEST,
+    INVESTIGATE,
+    REPORTS_DRAFT,
+    RESPOND_RECOMMEND,
+    RULES_DRAFT,
+    TUNING_DRAFT,
+)
 from app.core.timeutil import iso
 from app.features.core.models import IncidentUpdateIn, ResponseRequestIn
 
@@ -192,6 +200,13 @@ def _apply_tuning_review(
     return {"rule_id": row["target_id"], "suggestions_created": len(created), "suggestion_ids": created}
 
 
+def _apply_report_draft(
+    ctx: Any, row: Any, payload: dict[str, Any], principal: Principal, proposal_id: str
+) -> dict[str, Any]:
+    report = ctx.service("reports").draft(row["target_id"], principal)
+    return {"report_id": report["id"], "incident_id": report["incident_id"], "status": report["status"]}
+
+
 PROPOSAL_TYPES: dict[str, ProposalType] = {
     "incident.update": ProposalType("incident.update", INVESTIGATE, "incident", _apply_incident_update),
     "incident.note": ProposalType("incident.note", INVESTIGATE, "incident", _apply_note),
@@ -200,6 +215,7 @@ PROPOSAL_TYPES: dict[str, ProposalType] = {
     "rule.draft": ProposalType("rule.draft", RULES_DRAFT, "incident", _apply_rule_draft),
     "rule.backtest": ProposalType("rule.backtest", RULES_DRAFT, "rule", _apply_rule_backtest),
     "tuning.suggest": ProposalType("tuning.suggest", TUNING_DRAFT, "rule", _apply_tuning_review),
+    "report.cert_in.draft": ProposalType("report.cert_in.draft", REPORTS_DRAFT, "incident", _apply_report_draft),
 }
 assert not (set(PROPOSAL_TYPES) & HUMAN_ONLY_ACTIONS)  # noqa: S101 - invariant, checked at import
 
@@ -302,6 +318,13 @@ def _propose_tuning_review(tc: ToolContext, args: RuleTargetArgs) -> dict[str, A
     return _record_proposal(tc, "tuning.suggest", _existing_rule(tc, args.rule_id), {}, args.rationale, [])
 
 
+def _propose_cert_in_draft(tc: ToolContext, args: RuleDraftArgs) -> dict[str, Any]:
+    """Same arguments as a rule draft: an incident, a rationale and cited evidence."""
+    return _record_proposal(
+        tc, "report.cert_in.draft", _existing_incident(tc, args.incident_id), {}, args.rationale, args.evidence
+    )
+
+
 def _list_proposals_tool(tc: ToolContext, _: NoArgs) -> dict[str, Any]:
     items = tc.ctx.service("agent").search(status="PROPOSED", limit=5)["items"]
     return {"proposals": [[p["id"], p["action"], p["target_id"], p["rationale"][:100]] for p in items]}
@@ -359,6 +382,14 @@ def agent_tools() -> list[ToolSpec]:
             "draft a tuning review of a noisy rule",
             RuleTargetArgs,
             _propose_tuning_review,
+            kind="propose",
+        ),
+        ToolSpec(
+            "propose_cert_in_draft",
+            "i1",
+            "draft a CERT-In report for an incident",
+            RuleDraftArgs,
+            _propose_cert_in_draft,
             kind="propose",
         ),
     ]

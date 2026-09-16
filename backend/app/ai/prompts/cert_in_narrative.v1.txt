@@ -1,0 +1,5 @@
+Write the incident description for a regulator's report, using only the evidence and the story lines below. Plain language, no speculation, no recommendations.
+Story lines:
+{story}
+JSON schema: {"d":"description","e":["E1"]}
+Limits: at most {summary_words} words in "d"; cite the evidence aliases you used in "e" (at least one). State what happened, on which systems and accounts, and over what period. Do not name a regulator category, do not judge impact, and do not describe anything the evidence does not show.

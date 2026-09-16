@@ -1,0 +1,246 @@
+{
+  "status": "UNVERIFIED",
+  "verified_against": "",
+  "verified_on": null,
+  "verification_note": "Drafted from general knowledge of India's CERT-In directions on cyber incident reporting (direction No. 20(3)/2022-CERT-In of 28 April 2022) and typical incident-report forms. Field names, the incident-type list and the timing rule have NOT been checked against the current official directions or reporting form. Verify every item below with compliance or legal, then set status to VERIFIED with verified_against and verified_on. AEGIS never submits anything: a human files the report.",
+  "reporting": {
+    "authority": "CERT-In (Indian Computer Emergency Response Team)",
+    "deadline_hours": 6,
+    "deadline_basis": "Counted from when the incident was noticed. AEGIS uses the first detection time and stores every timestamp in UTC.",
+    "channels": ["email", "phone", "the CERT-In web form"],
+    "note": "Channels and addresses change; take them from the current official directions, not from this file."
+  },
+  "fields": [
+    {
+      "id": "organization_name",
+      "label": "Organisation name",
+      "required": true,
+      "source": "profile",
+      "description": "Legal name of the affected organisation.",
+      "max_length": 200
+    },
+    {
+      "id": "organization_sector",
+      "label": "Sector",
+      "required": true,
+      "source": "profile",
+      "description": "Sector the organisation operates in, for example IT, banking or healthcare.",
+      "max_length": 120
+    },
+    {
+      "id": "contact_name",
+      "label": "Point of contact",
+      "required": true,
+      "source": "profile",
+      "description": "Person CERT-In can contact about this report.",
+      "max_length": 120
+    },
+    {
+      "id": "contact_email",
+      "label": "Contact email",
+      "required": true,
+      "source": "profile",
+      "description": "Email address of the point of contact.",
+      "max_length": 200
+    },
+    {
+      "id": "contact_phone",
+      "label": "Contact phone",
+      "required": true,
+      "source": "profile",
+      "description": "Phone number of the point of contact.",
+      "max_length": 40
+    },
+    {
+      "id": "organization_address",
+      "label": "Organisation address",
+      "required": false,
+      "source": "profile",
+      "description": "Postal address of the affected organisation.",
+      "max_length": 400,
+      "multiline": true
+    },
+    {
+      "id": "incident_type",
+      "label": "Type of incident",
+      "required": true,
+      "source": "auto",
+      "description": "Suggested from the rules and techniques that fired. Confirm it against the official category list.",
+      "max_length": 120
+    },
+    {
+      "id": "detected_at",
+      "label": "Date and time the incident was noticed (UTC)",
+      "required": true,
+      "source": "auto",
+      "description": "First detection time recorded by AEGIS; the reporting deadline counts from here.",
+      "max_length": 40
+    },
+    {
+      "id": "occurred_at",
+      "label": "Date and time the activity started (UTC)",
+      "required": true,
+      "source": "auto",
+      "description": "Timestamp of the earliest correlated evidence event.",
+      "max_length": 40
+    },
+    {
+      "id": "affected_systems",
+      "label": "Affected systems",
+      "required": true,
+      "source": "auto",
+      "description": "Assets in the incident, with their reported criticality.",
+      "max_length": 2000,
+      "multiline": true
+    },
+    {
+      "id": "affected_users",
+      "label": "Affected accounts",
+      "required": false,
+      "source": "auto",
+      "description": "User accounts that appear in the evidence.",
+      "max_length": 1000,
+      "multiline": true
+    },
+    {
+      "id": "indicators",
+      "label": "Indicators observed",
+      "required": false,
+      "source": "auto",
+      "description": "IP addresses, domains and file hashes taken from the evidence events.",
+      "max_length": 2000,
+      "multiline": true
+    },
+    {
+      "id": "attack_techniques",
+      "label": "Techniques observed (MITRE ATT&CK)",
+      "required": false,
+      "source": "auto",
+      "description": "Candidate techniques from the rules that fired. They are mappings, not confirmed attribution.",
+      "max_length": 1000,
+      "multiline": true
+    },
+    {
+      "id": "description",
+      "label": "Description of the incident",
+      "required": true,
+      "source": "ai",
+      "description": "Plain-language summary written from the incident story. Every sentence cites evidence; a human edits it before submission.",
+      "max_length": 4000,
+      "multiline": true
+    },
+    {
+      "id": "impact_assessment",
+      "label": "Impact",
+      "required": true,
+      "source": "human",
+      "description": "Business impact, data affected and services disrupted. AEGIS cannot judge this; a human writes it.",
+      "max_length": 2000,
+      "multiline": true
+    },
+    {
+      "id": "actions_taken",
+      "label": "Actions taken",
+      "required": true,
+      "source": "auto",
+      "description": "Containment and review steps recorded in AEGIS, including simulated response actions, marked as such.",
+      "max_length": 2000,
+      "multiline": true
+    },
+    {
+      "id": "current_status",
+      "label": "Current status of the incident",
+      "required": true,
+      "source": "auto",
+      "description": "Incident status and owner in AEGIS at the time of the draft.",
+      "max_length": 200
+    },
+    {
+      "id": "evidence_reference",
+      "label": "Evidence reference",
+      "required": false,
+      "source": "auto",
+      "description": "AEGIS incident identifier and event count, so the evidence can be produced on request.",
+      "max_length": 400
+    },
+    {
+      "id": "reporter_notes",
+      "label": "Anything else CERT-In should know",
+      "required": false,
+      "source": "human",
+      "description": "Free text added by the person filing the report.",
+      "max_length": 2000,
+      "multiline": true
+    }
+  ],
+  "incident_types": [
+    {
+      "id": "targeted_scanning",
+      "label": "Targeted scanning or probing of critical networks and systems",
+      "rules": ["NET-001"],
+      "techniques": ["T1046"],
+      "keywords": ["scan", "probe", "distinct destination"],
+      "reportable": "likely",
+      "note": "Scanning of critical systems is commonly listed as reportable. Confirm the current wording."
+    },
+    {
+      "id": "unauthorised_access",
+      "label": "Unauthorised access to IT systems or data",
+      "rules": ["AUTH-001", "AUTH-002", "ACCT-001"],
+      "techniques": ["T1110", "T1078", "T1136", "T1098"],
+      "keywords": ["failed login", "successful login", "account created", "privileges changed"],
+      "reportable": "likely",
+      "note": "Brute force followed by a successful login is usually treated as unauthorised access."
+    },
+    {
+      "id": "malicious_code",
+      "label": "Malicious code attack, including ransomware",
+      "rules": ["FILE-001", "PROC-001", "SOURCE-001", "SOURCE-002"],
+      "techniques": ["T1486", "T1059.001", "T1105"],
+      "keywords": ["ransomware", "encrypted", "malicious", "encoded powershell", "file changes"],
+      "reportable": "yes",
+      "note": "Ransomware and malicious-code incidents are reportable in the directions as drafted here."
+    },
+    {
+      "id": "data_breach_or_leak",
+      "label": "Data breach or data leak",
+      "rules": [],
+      "techniques": ["T1041", "T1003"],
+      "keywords": ["exfiltration", "credential dump", "data leak"],
+      "reportable": "yes",
+      "note": "Applies when data left the organisation or credentials were stolen. A human must confirm the data involved."
+    },
+    {
+      "id": "defacement_or_tampering",
+      "label": "Website defacement, or tampering with systems and logs",
+      "rules": ["LOG-001"],
+      "techniques": ["T1685.005"],
+      "keywords": ["log cleared", "defacement", "tamper"],
+      "reportable": "likely",
+      "note": "Log clearing suggests tampering; confirm whether it fits this category."
+    },
+    {
+      "id": "denial_of_service",
+      "label": "Denial of service or distributed denial of service",
+      "rules": [],
+      "techniques": [],
+      "keywords": ["denial of service", "ddos", "flood"],
+      "reportable": "yes",
+      "note": "AEGIS has no denial-of-service rule yet; select this manually when it applies."
+    },
+    {
+      "id": "other",
+      "label": "Other cyber security incident",
+      "rules": [],
+      "techniques": [],
+      "keywords": [],
+      "reportable": "likely",
+      "note": "Fallback when no mapped category fits. A human chooses the correct category from the official list."
+    }
+  ],
+  "reportability_notes": [
+    "AEGIS suggests a category from the rules and techniques that fired. It is a starting point, not a legal determination.",
+    "The obligation to report, the category and the deadline all depend on the current official directions and on facts AEGIS cannot see, such as the data involved and whether the organisation is covered.",
+    "Confirm with compliance or legal before filing, and file through the official channel: AEGIS never transmits reports."
+  ]
+}

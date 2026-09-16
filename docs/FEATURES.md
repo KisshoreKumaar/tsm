@@ -11,11 +11,11 @@ A feature is `done` only after its acceptance tests have been run and passed.
 | F2 | Alert story: deterministic (phase 2), validated AI polish (phase 3) | 2, 3 | done | `f2` |
 | X1 | LLM provider settings with a UI API-key field | 3 | done | `x1` |
 | F3 | AI analyst (grounded Q&A, quick and deep modes) | 3 | done | `f3` |
-| X2 | Agent console: reads every module, proposes changes a human applies | 3 (core), 4–6 (tools) | in-progress (core, F4, A3 and A5 tools done; I1 tools arrive with I1) | `x2` |
+| X2 | Agent console: reads every module, proposes changes a human applies | 3 (core), 4–6 (tools) | done | `x2` |
 | F4 | Attack prediction, next-step prediction, watchlist | 4 | done | `f4` |
 | A3 | AI detection engineer: DSL, backtest, lifecycle | 5 | done | `a3` |
 | A5 | Learning from false positives: analytics, tuning suggestions, suppressions | 5 | done | `a5` |
-| I1 | CERT-In incident report drafts with deadline tracking | 6 | planned | `i1` |
+| I1 | CERT-In incident report drafts with deadline tracking | 6 | done | `i1` |
 | HARDEN | Evaluation dashboard, security review, cache pre-warming, Docker, docs, demo script, seed data | 7 | planned | — |
 
 Backlog (build only on request): A2 injection showcase, A4 encoded-command decoder, A7 AI scorecard, S1 plain-language
@@ -200,6 +200,14 @@ countdown, and the suppressed-detection list. Agent tools `get_fp_analytics`, `l
 
 **Acceptance:** attack-chain draft has all automatic fields filled and cited; missing organization profile flagged;
 deadline correct across time zones; cannot mark submitted without approval; reports module makes no network calls.
+
+**Phase 6 status:** template config `data/compliance/cert_in.json` ships as **UNVERIFIED** and must be checked against
+the official directions before use (D-029); it is validated at startup and its version is stamped on every draft.
+Mapping, reportability, deadlines and exports live in `app/reports/`. API `GET/PUT /api/org-profile`,
+`GET /api/compliance/deadlines`, `POST /api/incidents/{id}/cert-in`, `GET/PATCH /api/cert-in/{id}`,
+`POST /api/cert-in/{id}/submit-review|approve|mark-submitted`, `GET /api/cert-in/{id}/export|diff`. UI: compliance
+page with the profile and deadline list, and a "CERT-In" incident tab with provenance badges, missing-field chips,
+exports and version diff. Agent tools `get_report_draft`, `get_deadlines`; proposal `report.cert_in.draft`.
 
 ## HARDEN — Phase 7
 

@@ -243,3 +243,26 @@ service (which opens its own write) while the proposal status and both audit rec
   can make a rule start firing again where it currently has no detection.
 - `tuning.suggest` only ranks and explains; it never changes a scope or an impact figure, and a deterministic ranking
   by impact is used when the LLM is unavailable.
+
+## D-029 — CERT-In drafts (I1)
+- **The shipped template is UNVERIFIED.** `data/compliance/cert_in.json` holds the field list, incident categories and
+  the six-hour window drafted from general knowledge, not from the official directions. Nothing is hardcoded in code,
+  the banner appears in the UI and in every export, and the template hash is stored on each report. Verify it with
+  compliance or legal, then set `status`, `verified_against` and `verified_on`.
+- Every field records provenance — `profile`, `auto`, `ai`, `human` or `missing` — plus the evidence event IDs or
+  AEGIS record references it came from. Impact and reporter notes are human-only; AEGIS cannot judge business impact.
+- Drafts are created deterministically so they work with the LLM disabled. When a provider is configured,
+  `report.cert_in_narrative` rewrites only the description from the F2 story and is accepted only if it cites valid
+  evidence and repeats no instruction-like text; it lands as a new version and never touches a report already in
+  review.
+- Reportability is a suggestion scored from the rules and techniques that fired and from keywords in AEGIS's own
+  detection summaries. Raw event text is never scored: it is attacker-controlled and must not steer a compliance
+  decision. The output always carries "confirm with compliance or legal".
+- The deadline counts from the first detection time, is stored in UTC and is shown in UTC or IST. States are warning
+  at half the window and critical at a quarter.
+- Workflow DRAFT → IN_REVIEW → APPROVED → MARKED_SUBMITTED. Review and approval need every required field; approval
+  needs `reports.finalize` and, in two-person mode, someone other than the drafter. Marking submitted only records a
+  human's own submission time and reference: **AEGIS never transmits a report**, which a test enforces by keeping the
+  reports package free of any network import.
+- Editing is limited to human fields and the description; evidence-filled fields are regenerated, never typed over.
+  Every change creates a version, so drafts can be diffed and audited.

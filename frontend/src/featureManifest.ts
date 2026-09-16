@@ -11,6 +11,7 @@ import { RulesPage } from "./features/core/RulesPage";
 import { CampaignPage } from "./features/f1/CampaignPage";
 import { CampaignsPage } from "./features/f1/CampaignsPage";
 import { DetectionEngineeringPage } from "./features/a3/DetectionEngineeringPage";
+import { CompliancePage } from "./features/i1/CompliancePage";
 import { TuningPage } from "./features/a5/TuningPage";
 import { GraphPage } from "./features/f1/GraphPage";
 import { WatchlistPage } from "./features/f4/WatchlistPage";
@@ -66,6 +67,10 @@ export const FRONTEND_FEATURES: FrontendFeature[] = [
   {
     id: "a5",
     routes: [{ path: "/tuning", Component: TuningPage }],
+  },
+  {
+    id: "i1",
+    routes: [{ path: "/compliance", Component: CompliancePage }],
   },
   {
     id: "x1",

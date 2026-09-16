@@ -1,0 +1,56 @@
+.deadline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.deadline-ok {
+  color: var(--ok);
+}
+
+.deadline-warning {
+  color: var(--warn);
+}
+
+.deadline-critical,
+.deadline-overdue {
+  color: var(--danger);
+}
+
+.report-field {
+  border-top: 1px solid var(--border);
+  padding: 0.6rem 0;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.report-field .value {
+  white-space: pre-wrap;
+}
+
+.provenance-auto {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.provenance-ai {
+  color: var(--accent-2);
+  border-color: var(--accent-2);
+}
+
+.provenance-human {
+  color: var(--text);
+}
+
+.provenance-missing {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.missing-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
