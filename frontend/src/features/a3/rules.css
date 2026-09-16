@@ -1,0 +1,61 @@
+.rule-layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .rule-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.rule-list {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.rule-row {
+  display: grid;
+  gap: 0.15rem;
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: inherit;
+  padding: 0.5rem 0.6rem;
+  cursor: pointer;
+}
+
+.rule-row.selected {
+  border-color: var(--accent);
+}
+
+.rule-editor textarea {
+  width: 100%;
+  min-height: 15rem;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.8rem;
+}
+
+.rule-errors {
+  color: var(--danger);
+  font-size: 0.85rem;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.backtest-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.5rem;
+}
+
+.diff-row {
+  display: grid;
+  grid-template-columns: minmax(10rem, 16rem) 1fr;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}

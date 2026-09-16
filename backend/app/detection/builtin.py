@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import copy
 import re
 from collections.abc import Sequence
 from dataclasses import dataclass
+from typing import ClassVar
 
 from app.detection.base import (
     Detection,
@@ -28,11 +30,39 @@ class RuleInfo:
     stage: str
     description: str
 
+    TUNABLE: ClassVar[tuple[str, ...]] = ()
+    THRESHOLD: ClassVar[int] = 0
+    WINDOW_SECONDS: ClassVar[int] = 0
+
     def evaluate(self, events: Sequence[Event]) -> list[Detection]:
         raise NotImplementedError
 
+    def parameters(self) -> dict[str, int]:
+        if not self.TUNABLE:
+            return {}
+        return {"threshold": self.THRESHOLD, "window_seconds": self.WINDOW_SECONDS}
+
+    def with_parameters(self, threshold: int | None = None, window_seconds: int | None = None) -> RuleInfo:
+        """A copy with approved tuning applied (A5). Only rules declaring TUNABLE accept parameters."""
+        if not self.TUNABLE:
+            raise ValueError(f"Rule {self.id} has no tunable parameters")
+        clone = copy.copy(self)
+        if threshold is not None:
+            object.__setattr__(clone, "THRESHOLD", int(threshold))
+        if window_seconds is not None:
+            object.__setattr__(clone, "WINDOW_SECONDS", int(window_seconds))
+        return clone
+
+
+def duration_text(seconds: int) -> str:
+    if seconds % 60 == 0:
+        minutes = seconds // 60
+        return f"{minutes} minute{'' if minutes == 1 else 's'}"
+    return f"{seconds} seconds"
+
 
 class BruteForceRule(RuleInfo):
+    TUNABLE = ("threshold", "window_seconds")
     THRESHOLD = 5
     WINDOW_SECONDS = 600
 
@@ -63,12 +93,13 @@ class BruteForceRule(RuleInfo):
                     self,
                     hits.values(),
                     make_group_key(asset=sample.asset, user=sample.username, source=sample.source, ip=sample.source_ip),
-                    f"{len(hits)} failed logins for {sample.username} on {sample.asset} from {ip} within 10 minutes",
+                    f"{len(hits)} failed logins for {sample.username} on {sample.asset} from {ip} "
+                    f"within {duration_text(self.WINDOW_SECONDS)}",
                     {
                         "failures": len(hits),
                         "source_ip": sample.source_ip,
                         "threshold": self.THRESHOLD,
-                        "window_seconds": 600,
+                        "window_seconds": self.WINDOW_SECONDS,
                     },
                 )
             )
@@ -76,6 +107,7 @@ class BruteForceRule(RuleInfo):
 
 
 class SuccessAfterFailuresRule(RuleInfo):
+    TUNABLE = ("threshold", "window_seconds")
     THRESHOLD = 5
     WINDOW_SECONDS = 600
 
@@ -197,6 +229,7 @@ class EncodedPowerShellRule(RuleInfo):
 
 
 class NetworkDiscoveryRule(RuleInfo):
+    TUNABLE = ("threshold", "window_seconds")
     THRESHOLD = 10
     WINDOW_SECONDS = 300
 
@@ -234,7 +267,7 @@ class NetworkDiscoveryRule(RuleInfo):
                     hits.values(),
                     make_group_key(asset=sample.asset, user=sample.username),
                     f"{len(targets)} distinct destination IP:port pairs contacted from {sample.asset} by "
-                    f"{sample.username} within 5 minutes",
+                    f"{sample.username} within {duration_text(self.WINDOW_SECONDS)}",
                     {
                         "distinct_targets": len(targets),
                         "sample_targets": [f"{ip}:{port}" for ip, port in targets[:10]],
@@ -249,6 +282,7 @@ class NetworkDiscoveryRule(RuleInfo):
 
 
 class MassFileChangeRule(RuleInfo):
+    TUNABLE = ("threshold", "window_seconds")
     THRESHOLD = 50
     WINDOW_SECONDS = 120
 
@@ -278,12 +312,12 @@ class MassFileChangeRule(RuleInfo):
                     self,
                     hits.values(),
                     make_group_key(asset=sample.asset),
-                    f"{len(hits)} file changes on {sample.asset} within 2 minutes",
+                    f"{len(hits)} file changes on {sample.asset} within {duration_text(self.WINDOW_SECONDS)}",
                     {
                         "changes": len(hits),
                         "sample_paths": paths[:5],
                         "threshold": self.THRESHOLD,
-                        "window_seconds": 120,
+                        "window_seconds": self.WINDOW_SECONDS,
                     },
                 )
             )

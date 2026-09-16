@@ -10,6 +10,8 @@ import { ResponsesPage } from "./features/core/ResponsesPage";
 import { RulesPage } from "./features/core/RulesPage";
 import { CampaignPage } from "./features/f1/CampaignPage";
 import { CampaignsPage } from "./features/f1/CampaignsPage";
+import { DetectionEngineeringPage } from "./features/a3/DetectionEngineeringPage";
+import { TuningPage } from "./features/a5/TuningPage";
 import { GraphPage } from "./features/f1/GraphPage";
 import { WatchlistPage } from "./features/f4/WatchlistPage";
 import { AiProvidersPage } from "./features/x1/AiProvidersPage";
@@ -56,6 +58,14 @@ export const FRONTEND_FEATURES: FrontendFeature[] = [
   {
     id: "f4",
     routes: [{ path: "/predictions", Component: WatchlistPage }],
+  },
+  {
+    id: "a3",
+    routes: [{ path: "/detection-engineering", Component: DetectionEngineeringPage }],
+  },
+  {
+    id: "a5",
+    routes: [{ path: "/tuning", Component: TuningPage }],
   },
   {
     id: "x1",

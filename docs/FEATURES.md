@@ -11,10 +11,10 @@ A feature is `done` only after its acceptance tests have been run and passed.
 | F2 | Alert story: deterministic (phase 2), validated AI polish (phase 3) | 2, 3 | done | `f2` |
 | X1 | LLM provider settings with a UI API-key field | 3 | done | `x1` |
 | F3 | AI analyst (grounded Q&A, quick and deep modes) | 3 | done | `f3` |
-| X2 | Agent console: reads every module, proposes changes a human applies | 3 (core), 4–6 (tools) | in-progress (core and F4 tools done; A3/A5/I1 tools arrive with them) | `x2` |
+| X2 | Agent console: reads every module, proposes changes a human applies | 3 (core), 4–6 (tools) | in-progress (core, F4, A3 and A5 tools done; I1 tools arrive with I1) | `x2` |
 | F4 | Attack prediction, next-step prediction, watchlist | 4 | done | `f4` |
-| A3 | AI detection engineer: DSL, backtest, lifecycle | 5 | planned | `a3` |
-| A5 | Learning from false positives: analytics, tuning suggestions, suppressions | 5 | planned | `a5` |
+| A3 | AI detection engineer: DSL, backtest, lifecycle | 5 | done | `a3` |
+| A5 | Learning from false positives: analytics, tuning suggestions, suppressions | 5 | done | `a5` |
 | I1 | CERT-In incident report drafts with deadline tracking | 6 | planned | `i1` |
 | HARDEN | Evaluation dashboard, security review, cache pre-warming, Docker, docs, demo script, seed data | 7 | planned | — |
 
@@ -160,6 +160,13 @@ timeline, watchlist page and live "prediction observed" alerts. Evaluation repor
 on that incident; ACTIVE requires TESTED + approval; active rule fires on ingestion, disabling stops it; invalid AI
 DSL repaired once or fails cleanly.
 
+**Phase 5 status:** DSL and evaluation in `app/rules/`, restricted regex in `app/detection/safe_regex.py`, conditions
+shared with F4 watch signals (D-027). Editing keeps the activated version running until the new one is activated.
+API `GET/POST /api/rules*`, `POST /api/rules/validate`, `POST /api/rules/draft-from-incident/{id}`,
+`POST /api/rules/{id}/backtest|approve|activate|disable|retire`, `GET /api/rules/{id}/export|diff`. UI: detection
+engineering page (editor with live validation, backtest report, lifecycle, version diff, JSON/Sigma export) and a
+"Rule draft" incident tab. Agent tools `get_rule`, `list_custom_rules`; proposals `rule.draft`, `rule.backtest`.
+
 ## A5 — Learning from false positives (Phase 5)
 
 - FALSE_POSITIVE closure requires reason category, note and optional benign entities.
@@ -172,6 +179,14 @@ DSL repaired once or fails cleanly.
 **Acceptance:** authorized-scanner closed as FP three times → NET-001 suppression scoped to the scanner IP with alerts
 removed and 0 true positives lost; after approval the attack-chain scan from another IP is still detected; expired
 suppressions stop applying; revert works; audited.
+
+**Phase 5 status:** generation, simulation and scopes in `app/tuning/` (D-028); suggestions appear automatically after
+false-positive verdicts and on request. API `GET /api/tuning/fp-analytics`, `GET/POST /api/tuning/suggestions`,
+`POST /api/tuning/suggestions/generate`, `POST …/{id}/simulate|approve|reject|revert`, `GET /api/suppressions`,
+`POST /api/suppressions/{id}/revert`, `GET /api/tuning/suppressed-detections`. UI: tuning page with the
+false-positive dashboard, suggestion queue with impact and acknowledgements, active suppressions with expiry
+countdown, and the suppressed-detection list. Agent tools `get_fp_analytics`, `list_tuning_suggestions`; proposal
+`tuning.suggest`. The scenario evaluation runs both Phase 5 workflows end to end.
 
 ## I1 — CERT-In incident report drafts (Phase 6)
 

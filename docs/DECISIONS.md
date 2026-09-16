@@ -198,3 +198,48 @@ service (which opens its own write) while the proposal status and both audit rec
   audited as `prediction.withdrawn`.
 - `prediction.explain` never changes scores. An AI candidate must be a catalog technique that is not already predicted
   and must cite valid evidence; it is shown as "AI candidate", unscored and not watched.
+
+## D-027 — Rule DSL, safety and lifecycle (A3)
+- Custom rules are JSON validated by Pydantic (`extra="forbid"`) and evaluated by `app/rules/dsl.py`; nothing in a rule
+  is ever executed. Conditions reuse the prediction condition grammar (`app/prediction/signals.py`), so watch signals
+  and rules share one field/operator allowlist; string comparisons are case-insensitive.
+- Regular expressions go through `app/detection/safe_regex.py`: at most 200 characters, and no backreferences,
+  lookarounds, nested quantifiers with an unbounded side, or alternation inside an unbounded repeat (Python's `re`
+  has no timeout). Values are clipped to 4,096 characters before matching.
+- A rule fires per `group_by` group when a sliding window reaches a count or distinct-count threshold, or when an
+  ordered `sequence` completes within the window. Detections are identical in shape to built-in ones.
+- IDs are `CUS-NNN` and can never shadow a built-in rule. Rules carry versions: editing creates a new version and
+  sets the rule back to DRAFT, while the previously activated version keeps running until the new one is activated
+  (`active_version` is separate from `current_version`).
+- Lifecycle DRAFT → TESTED (a backtest of the current version) → APPROVED → ACTIVE, plus DISABLED and RETIRED.
+  Approval needs `rules.approve`, and in two-person mode someone other than the version's author.
+- Backtests regroup stored events into the same components the pipeline would build, and also run the rule against
+  the synthetic benign day; they report overlap with existing rules, matches inside false-positive incidents and an
+  estimated alert rate, all labelled heuristics.
+- Built-in rules that declare `TUNABLE` accept threshold/window overrides via `with_parameters`, which A5 uses; the
+  engine re-reads overrides and active custom rules on every evaluation.
+- `rules.draft` output is rejected unless it validates *and* fires on the incident it was drafted from; otherwise the
+  deterministic draft (dominant event kind, shared behaviour, observed threshold) is used.
+- Sigma export is best effort and marked as such: thresholds, windows and sequences are not representable in basic
+  Sigma, so the export carries warnings and the AEGIS JSON stays the source of truth.
+
+## D-028 — Tuning from false positives (A5)
+- Suggestions are deterministic. AEGIS proposes one only when a rule has at least three incidents closed as
+  FALSE_POSITIVE that share an entity which appears in no open or resolved incident for that rule. Entities analysts
+  marked benign rank first, then the most specific type (source IP before user before asset).
+- Built-in rules get a scoped suppression (or a maintenance window when every verdict was `maintenance_window`);
+  custom rules get an exclusion condition, which becomes a new rule version. Threshold changes are suggested only
+  when every true-positive alert stays above the proposed value.
+- Every suggestion is simulated over stored events before it is shown and again at approval. Alerts are compared per
+  component by group key. "True positive" means an alert in an incident not closed as FALSE_POSITIVE — open
+  incidents included — which is deliberately conservative.
+- Approval needs `tuning.approve`; a protected rule (`AEGIS_PROTECTED_RULES`, default LOG-001 and FILE-001) and any
+  change that removes true-positive alerts each need an explicit acknowledgement. Two-person mode forbids approving
+  your own suggestion.
+- Suppressions carry a mandatory expiry of at most 90 days, and expire through a delayed job. Suppressed detections
+  are kept with status SUPPRESSED and their suppression ID, never deleted, and stay searchable.
+- Applying or reverting re-evaluates affected incidents in the same transaction. Suppressions touch only incidents
+  with that rule's detections; threshold, window and exclusion changes re-evaluate every open incident, because they
+  can make a rule start firing again where it currently has no detection.
+- `tuning.suggest` only ranks and explains; it never changes a scope or an impact figure, and a deterministic ranking
+  by impact is used when the LLM is unavailable.

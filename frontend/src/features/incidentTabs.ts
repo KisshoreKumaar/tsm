@@ -1,4 +1,5 @@
 import type { FeatureManifestEntry } from "../core/types";
+import { RuleDraftPanel } from "./a3/RuleDraftPanel";
 import type { IncidentTab } from "./core/incidentTabTypes";
 import { RelatedPanel } from "./f1/RelatedPanel";
 import { StoryTab } from "./f2/StoryTab";
@@ -11,6 +12,7 @@ export const INCIDENT_TABS: IncidentTab[] = [
   { featureId: "f3", id: "analyst", label: "AI analyst", order: 6, Component: AnalystTab },
   { featureId: "f4", id: "predictions", label: "Likely next", order: 7, Component: PredictionsTab },
   { featureId: "f1", id: "related", label: "Related", order: 60, Component: RelatedPanel },
+  { featureId: "a3", id: "rule-draft", label: "Rule draft", order: 70, Component: RuleDraftPanel },
 ];
 
 export function enabledIncidentTabs(manifest: FeatureManifestEntry[], tabs: IncidentTab[] = INCIDENT_TABS): IncidentTab[] {

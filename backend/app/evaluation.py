@@ -95,6 +95,69 @@ def evaluate_scenarios() -> list[dict[str, Any]]:
     return rows
 
 
+def evaluate_workflows() -> list[dict[str, Any]]:
+    """End-to-end checks that span features: a rule drafted from an incident, and tuning learned from verdicts."""
+    from app.features.a3.service import BacktestIn
+    from app.features.core.models import IncidentUpdateIn
+
+    rows: list[dict[str, Any]] = []
+    with tempfile.TemporaryDirectory() as tmp:
+        ctx = evaluation_context(Path(tmp))
+        rules = ctx.services.get("detection_rules")
+        if rules is not None:
+            incident_id = ctx.service("demo").run("lateral-movement", "instant", EVALUATOR)["incident_ids"][0]
+            rule_id = rules.draft_now(incident_id, EVALUATOR)["rule_id"]
+            result = rules.backtest(rule_id, BacktestIn(), EVALUATOR)["result"]
+            rows.append(
+                {
+                    "check": "rule drafted from lateral-movement backtests on its own incident",
+                    "ok": incident_id in result["matched_incident_ids"] and result["detections"] > 0,
+                    "detail": f"{rule_id}: {result['detections']} alert(s), "
+                    f"{result['matches_in_benign_scenario']} on benign data, "
+                    f"{result['estimated_alerts_per_day']}/day estimated",
+                }
+            )
+
+    with tempfile.TemporaryDirectory() as tmp:
+        ctx = evaluation_context(Path(tmp))
+        tuning = ctx.services.get("tuning")
+        if tuning is not None:
+            for _ in range(3):
+                [incident_id] = ctx.service("demo").run("authorized-scanner", "instant", EVALUATOR)["incident_ids"]
+                detail = ctx.service("incidents").get(incident_id)
+                ctx.service("incidents").update(
+                    incident_id,
+                    IncidentUpdateIn(
+                        revision=detail["revision"],
+                        status="FALSE_POSITIVE",
+                        note="Authorised weekly vulnerability scan",
+                        closure_category="authorized_scanner",
+                    ),
+                    EVALUATOR,
+                )
+            tuning.generate_now(EVALUATOR)
+            suggestions = [s for s in tuning.search("PROPOSED")["items"] if s["rule_id"] == "NET-001"]
+            suggestion = suggestions[0] if suggestions else None
+            impact = suggestion["impact"] if suggestion else {}
+            rows.append(
+                {
+                    "check": "three scanner false positives suggest a scoped suppression with no true-positive loss",
+                    "ok": bool(suggestion)
+                    and suggestion["type"] == "suppression"
+                    and suggestion["scope"]["entities"] == [{"type": "source_ip", "value": "10.20.0.250"}]
+                    and impact["true_positive_alerts_removed"] == 0,
+                    "detail": (
+                        f"{suggestion['type']} scoped to "
+                        f"{suggestion['scope']['entities'][0]['value']}: removes {impact['alerts_removed']} alert(s), "
+                        f"{impact['true_positive_alerts_removed']} true positive"
+                        if suggestion
+                        else "no suggestion was generated"
+                    ),
+                }
+            )
+    return rows
+
+
 def run_evaluation() -> int:
     rows = evaluate_scenarios()
     failures = 0
@@ -121,4 +184,11 @@ def run_evaluation() -> int:
             f"({observed_total / predicted_total:.0%}; descriptive, not a probability)"
         )
     print(f"\n{len(rows) - failures}/{len(rows)} scenarios passed")
+
+    workflows = evaluate_workflows()
+    if workflows:
+        print("\nCross-feature workflows")
+        for workflow in workflows:
+            failures += 0 if workflow["ok"] else 1
+            print(f"  {'PASS' if workflow['ok'] else 'FAIL'}  {workflow['check']}\n        {workflow['detail']}")
     return 0 if failures == 0 else 1

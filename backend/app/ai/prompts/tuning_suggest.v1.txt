@@ -1,0 +1,5 @@
+Rank these tuning suggestions for a SOC reviewer, safest and most useful first, using only the figures given. You cannot change any suggestion; a human approves or rejects each one.
+Suggestions:
+{suggestions}
+JSON schema: {"r":[{"id":"S1","t":"one-sentence rationale"}]}
+Limits: rank every id exactly once; each rationale at most {claim_words} words. Prefer changes that remove false-positive alerts without touching true positives, and say so when a change removes true-positive alerts.

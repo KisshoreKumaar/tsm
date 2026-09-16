@@ -10,6 +10,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, StrictStr, model_validator
 
 from app.detection.base import Event
+from app.detection.safe_regex import UnsafeRegex, compile_safe, search
 
 EventKind = Literal[
     "auth_failure",
@@ -23,7 +24,7 @@ EventKind = Literal[
     "suspicious_process",
     "malicious_indicator",
 ]
-Operator = Literal["equals", "in", "contains", "startswith", "endswith", "cidr", "gt", "gte", "lt", "lte"]
+Operator = Literal["equals", "in", "contains", "startswith", "endswith", "cidr", "regex", "gt", "gte", "lt", "lte"]
 
 STRING_FIELDS = frozenset(
     {
@@ -71,6 +72,12 @@ class Condition(BaseModel):
                 raise ValueError(f"Values for {self.field} must be strings of 1 to {MAX_VALUE_LENGTH} characters")
             if self.op == "in" and not isinstance(self.value, list):
                 raise ValueError("Operator in needs a list of values")
+            if self.op == "regex":
+                for pattern in values:
+                    try:
+                        compile_safe(str(pattern))
+                    except UnsafeRegex as exc:
+                        raise ValueError(str(exc)) from None
             if self.op == "cidr":
                 if self.field not in IP_FIELDS:
                     raise ValueError("Operator cidr applies only to source_ip or destination_ip")
@@ -117,6 +124,8 @@ class Condition(BaseModel):
             except ValueError:
                 return False
             return any(address in ipaddress.ip_network(str(v), strict=False) for v in values)
+        if self.op == "regex":
+            return any(search(str(pattern), str(actual)) for pattern in values)
         text = str(actual).casefold()
         needles = [str(v).casefold() for v in values]
         if self.op in ("equals", "in"):

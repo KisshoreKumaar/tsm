@@ -1,0 +1,5 @@
+Draft one detection rule that would detect the activity in this incident, using only the evidence.
+Existing rules: {rules}
+JSON schema: {"n":"rule name","k":["event kind"],"c":[["field","op","value"]],"g":["asset","user"],"w":300,"t":5,"df":null,"s":"MEDIUM","x":["T1110"],"r":"why this rule","fp":["expected false positive"]}
+Kinds: {kinds}. Fields: {fields}. Ops: equals, in, contains, startswith, endswith, cidr, gt, gte, lt, lte, regex (short, no nested quantifiers). "t" counts events in window "w" seconds; if "df" names a field, "t" counts its distinct values instead. "s" is LOW, MEDIUM, HIGH or CRITICAL. Use technique IDs only from: {techniques}.
+Prefer behaviour (kinds, flags, thresholds) over one-off values such as a single IP address.

@@ -272,6 +272,16 @@ class IngestPipeline:
             self.notify_incidents_changed(session, [c.incident_id for c in changes], actor)
         return changes
 
+    def refresh_event_component(self, session: Session, event_id: str, actor: str) -> list[IncidentChange]:
+        """Re-evaluate the component around one event, e.g. a suppressed-only component after a suppression ends."""
+        row = session.one("SELECT * FROM events WHERE id = ?", (event_id,))
+        if row is None:
+            return []
+        changes = self._apply_component(session, self._component(session, Event.from_row(row)), set(), actor)
+        if changes:
+            self.notify_incidents_changed(session, [c.incident_id for c in changes], actor)
+        return changes
+
     def _correlate(self, session: Session, new_events: Sequence[Event], actor: str) -> list[IncidentChange]:
         new_ids = {e.id for e in new_events}
         covered: set[str] = set()

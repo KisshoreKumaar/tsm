@@ -27,7 +27,7 @@ from app.core.auth import Principal
 from app.core.errors import ApiError, Conflict, Forbidden, NotFound
 from app.core.jobs import Job, JobError, JobOutcome
 from app.core.jsonutil import canonical_json
-from app.core.permissions import AI_USE, INGEST, INVESTIGATE, RESPOND_RECOMMEND
+from app.core.permissions import AI_USE, INGEST, INVESTIGATE, RESPOND_RECOMMEND, RULES_DRAFT, TUNING_DRAFT
 from app.core.timeutil import iso
 from app.features.core.models import IncidentUpdateIn, ResponseRequestIn
 
@@ -98,6 +98,17 @@ class DemoReplayArgs(Strict):
     rationale: str = Field(min_length=3, max_length=500)
 
 
+class RuleDraftArgs(Strict):
+    incident_id: str | None = Field(default=None, max_length=64)
+    rationale: str = Field(min_length=3, max_length=500)
+    evidence: list[str] = Field(default_factory=list, max_length=10)
+
+
+class RuleTargetArgs(Strict):
+    rule_id: str = Field(min_length=1, max_length=32)
+    rationale: str = Field(min_length=3, max_length=500)
+
+
 class ApplyIn(Strict):
     acknowledge_injection: StrictBool = False
 
@@ -153,11 +164,42 @@ def _apply_demo(ctx: Any, row: Any, payload: dict[str, Any], principal: Principa
     return {"run_id": run["run_id"], "scenario": run["scenario"]}
 
 
+def _apply_rule_draft(
+    ctx: Any, row: Any, payload: dict[str, Any], principal: Principal, proposal_id: str
+) -> dict[str, Any]:
+    result: dict[str, Any] = ctx.service("detection_rules").draft_now(row["target_id"], principal)
+    return result
+
+
+def _apply_rule_backtest(
+    ctx: Any, row: Any, payload: dict[str, Any], principal: Principal, proposal_id: str
+) -> dict[str, Any]:
+    from app.features.a3.service import BacktestIn
+
+    outcome = ctx.service("detection_rules").backtest(row["target_id"], BacktestIn(), principal)
+    return {
+        "rule_id": outcome["rule_id"],
+        "backtest_id": outcome["backtest_id"],
+        "status": outcome["status"],
+        "detections": outcome["result"]["detections"],
+    }
+
+
+def _apply_tuning_review(
+    ctx: Any, row: Any, payload: dict[str, Any], principal: Principal, proposal_id: str
+) -> dict[str, Any]:
+    created = ctx.service("tuning").generate_now(principal, row["target_id"])
+    return {"rule_id": row["target_id"], "suggestions_created": len(created), "suggestion_ids": created}
+
+
 PROPOSAL_TYPES: dict[str, ProposalType] = {
     "incident.update": ProposalType("incident.update", INVESTIGATE, "incident", _apply_incident_update),
     "incident.note": ProposalType("incident.note", INVESTIGATE, "incident", _apply_note),
     "response.recommend": ProposalType("response.recommend", RESPOND_RECOMMEND, "incident", _apply_response),
     "demo.replay": ProposalType("demo.replay", INGEST, "demo", _apply_demo),
+    "rule.draft": ProposalType("rule.draft", RULES_DRAFT, "incident", _apply_rule_draft),
+    "rule.backtest": ProposalType("rule.backtest", RULES_DRAFT, "rule", _apply_rule_backtest),
+    "tuning.suggest": ProposalType("tuning.suggest", TUNING_DRAFT, "rule", _apply_tuning_review),
 }
 assert not (set(PROPOSAL_TYPES) & HUMAN_ONLY_ACTIONS)  # noqa: S101 - invariant, checked at import
 
@@ -233,6 +275,33 @@ def _propose_demo(tc: ToolContext, args: DemoReplayArgs) -> dict[str, Any]:
     return _record_proposal(tc, "demo.replay", None, {"scenario": args.scenario}, args.rationale, [])
 
 
+def _existing_rule(tc: ToolContext, rule_id: str) -> str:
+    target = rule_id.strip().upper()
+    if target in tc.ctx.service("rules").builtin_ids():
+        return target
+    with tc.ctx.db.read() as session:
+        status = session.scalar("SELECT status FROM dsl_rules WHERE id = ?", (target,))
+    if status is None:
+        raise ToolError("Unknown rule_id")
+    return target
+
+
+def _propose_rule_draft(tc: ToolContext, args: RuleDraftArgs) -> dict[str, Any]:
+    target = _existing_incident(tc, args.incident_id)
+    return _record_proposal(tc, "rule.draft", target, {}, args.rationale, args.evidence)
+
+
+def _propose_rule_backtest(tc: ToolContext, args: RuleTargetArgs) -> dict[str, Any]:
+    target = _existing_rule(tc, args.rule_id)
+    if target in tc.ctx.service("rules").builtin_ids():
+        raise ToolError("Built-in rules are code, not DSL rules, and cannot be backtested")
+    return _record_proposal(tc, "rule.backtest", target, {}, args.rationale, [])
+
+
+def _propose_tuning_review(tc: ToolContext, args: RuleTargetArgs) -> dict[str, Any]:
+    return _record_proposal(tc, "tuning.suggest", _existing_rule(tc, args.rule_id), {}, args.rationale, [])
+
+
 def _list_proposals_tool(tc: ToolContext, _: NoArgs) -> dict[str, Any]:
     items = tc.ctx.service("agent").search(status="PROPOSED", limit=5)["items"]
     return {"proposals": [[p["id"], p["action"], p["target_id"], p["rationale"][:100]] for p in items]}
@@ -266,6 +335,30 @@ def agent_tools() -> list[ToolSpec]:
             "draft replaying a synthetic scenario",
             DemoReplayArgs,
             _propose_demo,
+            kind="propose",
+        ),
+        ToolSpec(
+            "propose_rule_draft",
+            "a3",
+            "draft a detection rule from an incident",
+            RuleDraftArgs,
+            _propose_rule_draft,
+            kind="propose",
+        ),
+        ToolSpec(
+            "propose_rule_backtest",
+            "a3",
+            "draft a backtest of a custom rule",
+            RuleTargetArgs,
+            _propose_rule_backtest,
+            kind="propose",
+        ),
+        ToolSpec(
+            "propose_tuning_review",
+            "a5",
+            "draft a tuning review of a noisy rule",
+            RuleTargetArgs,
+            _propose_tuning_review,
             kind="propose",
         ),
     ]

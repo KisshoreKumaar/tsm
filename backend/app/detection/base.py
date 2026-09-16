@@ -18,7 +18,7 @@ SEVERITY_RANK = {name: index for index, name in enumerate(SEVERITIES)}
 DETECTION_NAMESPACE = uuid.UUID("6f1c2b1e-4a57-4c1e-9d5e-2f0a7f3c9b10")
 
 # Stages that are not ATT&CK tactics; they never count as attack progression.
-NON_TACTIC_STAGES = frozenset({"AI manipulation attempt", "Source-reported alert"})
+NON_TACTIC_STAGES = frozenset({"AI manipulation attempt", "Source-reported alert", "Custom detection"})
 
 
 @dataclass(frozen=True)
