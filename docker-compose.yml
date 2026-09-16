@@ -1,0 +1,32 @@
+# Local container run. Create .env first (make init-env); it holds the tokens, the audit key and the secret key.
+# Unverified: Docker was not running on the build machine, so these images have never been built. Expect small fixes.
+services:
+  api:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.api
+    env_file: [.env]
+    environment:
+      AEGIS_DB: /data/aegis.db
+      AEGIS_CORS_ORIGINS: ""
+    volumes:
+      - aegis-data:/data
+    expose: ["8000"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/healthz').status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.web
+    # Bound to the loopback interface on purpose: AEGIS is a lab tool, not an internet-facing service.
+    ports: ["127.0.0.1:8080:8080"]
+    depends_on: [api]
+    restart: unless-stopped
+
+volumes:
+  aegis-data: {}

@@ -21,5 +21,6 @@ FEATURE = FeatureSpec(
         NavItem(path="/demo", label="Demo scenarios", section="Operations", order=90),
         NavItem(path="/rules", label="Detection rules", section="Detection", order=10),
         NavItem(path="/audit", label="Audit trail", section="Governance", order=10),
+        NavItem(path="/metrics", label="Metrics", section="Governance", order=20),
     ),
 )

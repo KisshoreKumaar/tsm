@@ -4,7 +4,7 @@ PY := $(ROOT)/.venv/bin/python
 NPM := npm
 
 .PHONY: help setup init-env token dev api web test test-backend test-frontend lint lint-backend lint-frontend \
-	format eval demo build backup verify-audit checkpoint
+	format eval demo seed build backup verify-audit checkpoint docker-build docker-up docker-down
 
 help: ## Show available targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  %-16s %s\n", $$1, $$2}'
@@ -54,8 +54,20 @@ eval: ## Run scenario evaluation (non-zero exit on regression)
 demo: ## Load a demo scenario into the local database (SCENARIO=attack-chain)
 	$(PY) scripts/manage.py demo --scenario $(or $(SCENARIO),attack-chain)
 
+seed: ## Fill the local database with synthetic walkthrough data
+	$(PY) scripts/seed.py
+
 build: ## Build the frontend for production
 	cd frontend && $(NPM) run build
+
+docker-build: ## Build the API and web images (unverified: never built on the dev machine)
+	docker compose build
+
+docker-up: ## Run the stack on http://127.0.0.1:8080 (needs .env)
+	docker compose up -d
+
+docker-down: ## Stop the stack
+	docker compose down
 
 backup: ## Consistent SQLite backup into backups/
 	$(PY) scripts/manage.py backup --output backups/aegis-$$(date +%Y%m%d-%H%M%S).db

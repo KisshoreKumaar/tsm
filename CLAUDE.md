@@ -23,7 +23,9 @@ make test           # backend pytest + frontend vitest
 make lint           # ruff check + ruff format --check + mypy + tsc --noEmit
 make eval           # scenario evaluation; exits non-zero on regression
 make demo SCENARIO=attack-chain
+make seed            # synthetic walkthrough data: incidents, FP verdicts, a rule draft, a CERT-In draft
 make verify-audit / make backup
+make docker-build / make docker-up    # unverified: no Docker daemon on the build machine
 ```
 
 Single backend test: `cd backend && ../.venv/bin/python -m pytest tests/core/test_jobs.py -k dedup -q`.

@@ -16,7 +16,7 @@ A feature is `done` only after its acceptance tests have been run and passed.
 | A3 | AI detection engineer: DSL, backtest, lifecycle | 5 | done | `a3` |
 | A5 | Learning from false positives: analytics, tuning suggestions, suppressions | 5 | done | `a5` |
 | I1 | CERT-In incident report drafts with deadline tracking | 6 | done | `i1` |
-| HARDEN | Evaluation dashboard, security review, cache pre-warming, Docker, docs, demo script, seed data | 7 | planned | — |
+| HARDEN | Evaluation dashboard, security review, cache pre-warming, Docker, docs, demo script, seed data | 7 | done | — |
 
 Backlog (build only on request): A2 injection showcase, A4 encoded-command decoder, A7 AI scorecard, S1 plain-language
 mode, S2 Indian-language summaries, S4 PII masking before AI, I2 DPDP breach draft, I3 compliance control mapping,
@@ -217,3 +217,11 @@ exports and version diff. Agent tools `get_report_draft`, `get_deadlines`; propo
   SECURITY, DEMO (five-minute script), seed data.
 
 **Acceptance:** `make eval` exits 0; the nine-step finale demo works end to end.
+
+**Phase 7 status:** `make eval` runs the eight scenarios plus three cross-feature workflows (rule draft and backtest,
+tuning from false-positive verdicts, CERT-In completeness) and exits non-zero on regression; a Metrics page in
+Governance shows the same figures live, labelled descriptive. Precompute already warms the slow model through the
+incident-change hooks (story polish, prediction explanations, CERT-In narrative), so no extra warming was needed.
+`make seed` fills a local database for a walkthrough. Docker Compose (`deploy/`, `docker-compose.yml`) is written but
+**unverified**: no Docker daemon was available on the build machine. Docs: README, ARCHITECTURE, API, SECURITY and
+DEMO.

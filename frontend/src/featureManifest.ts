@@ -5,6 +5,7 @@ import { DemoPage } from "./features/core/DemoPage";
 import { EventsPage } from "./features/core/EventsPage";
 import { IncidentPage } from "./features/core/IncidentPage";
 import { IncidentsPage } from "./features/core/IncidentsPage";
+import { MetricsPage } from "./features/core/MetricsPage";
 import { OverviewPage } from "./features/core/OverviewPage";
 import { ResponsesPage } from "./features/core/ResponsesPage";
 import { RulesPage } from "./features/core/RulesPage";
@@ -46,6 +47,7 @@ export const FRONTEND_FEATURES: FrontendFeature[] = [
       { path: "/rules", Component: RulesPage },
       { path: "/demo", Component: DemoPage },
       { path: "/audit", Component: AuditPage },
+      { path: "/metrics", Component: MetricsPage },
     ],
   },
   {

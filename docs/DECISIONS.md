@@ -266,3 +266,21 @@ service (which opens its own write) while the proposal status and both audit rec
   reports package free of any network import.
 - Editing is limited to human fields and the description; evidence-filled fields are regenerated, never typed over.
   Every change creates a version, so drafts can be diffed and audited.
+
+## D-030 — Hardening choices (Phase 7)
+- **Metrics are descriptive, not accuracy.** The Metrics page and `make eval` report counts and shares of AEGIS's own
+  records (predictions observed, false-positive verdicts, AI grounding, cache hits). They are not precision, recall or
+  a benchmark, and the labels say so. The page only shows cards for enabled features.
+- **Evaluation covers workflows, not just scenarios.** Besides the eight scenarios it runs three cross-feature checks
+  end to end: a rule drafted from lateral-movement backtests on its own incident, three scanner false positives
+  produce a scoped suppression with no true-positive loss, and a CERT-In draft fills and cites every automatic field
+  while flagging the missing profile.
+- **No separate cache pre-warming.** Stories, prediction explanations and CERT-In narratives are already precomputed
+  by the incident-change hooks with debounce and supersession, so adding a warming pass would only duplicate jobs.
+- **Containers: two images, loopback only.** An API image (uvicorn) and an nginx image that serves the built UI and
+  proxies `/api` with buffering off so SSE still streams. The compose file binds to 127.0.0.1 and keeps the database
+  in a named volume; no secret is baked into an image. These files are **unverified** — Docker was not available on
+  the build machine — and the README and FEATURES say so rather than implying they were tested.
+- **Seeding is synthetic and repeatable.** `scripts/seed.py` runs demo scenarios, closes the scanner runs as false
+  positives, drafts a rule and a CERT-In report and saves an organisation profile, so a fresh checkout has something
+  to walk through. Each run uses fresh asset suffixes, so it can be run repeatedly.
