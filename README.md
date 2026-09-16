@@ -1,6 +1,4 @@
-<<<<<<< HEAD
 # tsm
-=======
 # AEGIS SOC
 
 An AI-assisted Security Operations workbench. It ingests security telemetry, detects known attack patterns,
@@ -84,4 +82,3 @@ make docker-build && make docker-up   # http://127.0.0.1:8080
 - Point AEGIS at a private LLM endpoint you control, and keep redaction on.
 - Review [docs/SECURITY.md](docs/SECURITY.md) for the deployment assumptions (single-tenant, loopback, no TLS
   terminator included).
->>>>>>> c7b1dc7 (Phase 7: hardening, docs, metrics dashboard, seed data and containers)

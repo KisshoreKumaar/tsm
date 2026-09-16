@@ -181,7 +181,7 @@ class AIRuntime:
                 continue
             chain.append((config, build_provider(config, self.transport)))
         env = self.env_config()
-        if (env is not None and not active_exists) or env is not None:
+        if env is not None and not active_exists:
             chain.append((env, build_provider(env, self.transport)))
         return chain
 

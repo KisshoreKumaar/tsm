@@ -92,7 +92,7 @@ def validate_claims(
         text = pack.restore(_text(item.get("t", item.get("text"))))
         label = str(item.get("l", item.get("label", "UNKNOWN"))).strip().upper()
         if label not in LABELS:
-            raise OutputInvalid(f"Invalid claim label {label[:20]!r}")
+            label = "UNKNOWN"
         aliases = item.get("e", item.get("evidence_ids", [])) or []
         if not isinstance(aliases, list):
             raise OutputInvalid("Claim evidence must be a list")

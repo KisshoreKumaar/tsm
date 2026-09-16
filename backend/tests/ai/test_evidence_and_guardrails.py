@@ -93,8 +93,8 @@ def test_claim_validation_rejects_fake_citations_and_injected_text(ctx: AppConte
     assert claims[1]["downgraded"] is True and claims[1]["citations_rejected"] == 1
     assert stats.dropped == 1 and stats.invalid_aliases == ["E404"]
     assert grounding_rate([stats]) == round(2 / 5, 3)
-    with pytest.raises(OutputInvalid):
-        validate_claims([{"t": "x", "l": "CERTAIN", "e": []}], pack)
+    [normalized], _ = validate_claims([{"t": "x", "l": "CERTAIN", "e": []}], pack)
+    assert normalized["label"] == "UNKNOWN"
 
 
 def test_actions_never_include_approvals_or_executions() -> None:

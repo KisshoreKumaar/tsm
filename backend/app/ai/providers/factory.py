@@ -47,10 +47,10 @@ PRESETS: list[dict[str, Any]] = [
     },
     {
         "id": "groq",
-        "name": "Groq (llama-3.1-8b-instant)",
+        "name": "Groq (qwen3.8-27b)",
         "api_type": "openai",
         "base_url": "https://api.groq.com/openai/v1",
-        "model": "llama-3.1-8b-instant",
+        "model": "qwen/qwen3.8-27b",
         "context_tokens": 8192,
         "max_output_tokens": 600,
         "timeout_seconds": 60,
