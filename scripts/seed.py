@@ -6,7 +6,7 @@ detection rule and a CERT-In report, and saves an organisation profile. Syntheti
 machine. Safe to run more than once: each demo run uses a fresh asset suffix.
 """.
 
-from __future__ import annotations
+from __future__ import annotations.
 
 import sys
 from pathlib import Path
