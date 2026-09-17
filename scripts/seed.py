@@ -4,7 +4,7 @@
 Runs demo scenarios, closes the scanner runs as false positives so tuning has something to learn from, drafts a
 detection rule and a CERT-In report, and saves an organisation profile. Synthetic data only; nothing leaves the
 machine. Safe to run more than once: each demo run uses a fresh asset suffix.
-"""
+""".
 
 from __future__ import annotations
 
